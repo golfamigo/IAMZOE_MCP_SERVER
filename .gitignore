@@ -1,0 +1,15 @@
+# Node.js 相關
+node_modules/
+
+# 編譯輸出
+dist/
+
+# 環境變數
+.env
+
+# 日誌檔
+*.log
+
+# 編輯器產生的檔案 (可選，根據你使用的編輯器添加)
+.vscode/
+.idea/
