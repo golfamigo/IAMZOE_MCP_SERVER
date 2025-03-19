@@ -275,3 +275,124 @@ export interface UpdateBusinessRequest {
   } | null;
   line_destination?: string | null;
 }
+
+// 在 src/types/api.ts 中添加以下类型定义
+
+// 员工可用性相关类型定义
+export interface CreateStaffAvailabilityRequest {
+  staff_member_id: string;
+  day_of_week: number;  // 0 (星期日) 到 6 (星期六)
+  start_time: string;   // 格式: "HH:MM:SS" 
+  end_time: string;     // 格式: "HH:MM:SS"
+}
+
+export interface CreateStaffAvailabilityResponse {
+  staff_availability_id: string;
+}
+
+export interface StaffAvailabilityResponse {
+  staff_availability_id: string;
+  staff_member_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
+export interface StaffAvailabilityListResponse {
+  total: number;
+  availabilities: StaffAvailabilityResponse[];
+}
+
+// 在 src/types/api.ts 中添加以下类型定义
+
+// 员工服务关系相关类型定义
+export interface StaffServiceRequest {
+  bookable_item_id: string;
+}
+
+export interface StaffServiceResponse {
+  staff_member_id: string;
+  bookable_item_id: string;
+  bookable_item_name: string;
+  bookable_item_type_code: string;
+  bookable_item_duration: string;
+}
+
+export interface StaffServiceListResponse {
+  total: number;
+  services: StaffServiceResponse[];
+}
+
+// 在 src/types/api.ts 中添加以下类型定义
+
+// 通知相关类型定义
+export interface CreateNotificationRequest {
+  notification_type: string; // email, sms, line
+  notification_content: string;
+  recipient_user_ids: string[]; // 接收者的用户ID数组
+  booking_id?: string; // 可选，相关预约ID
+}
+
+export interface CreateNotificationResponse {
+  notification_id: string;
+}
+
+export interface NotificationResponse {
+  notification_id: string;
+  notification_type: string;
+  notification_content: string;
+  created_at: string;
+  updated_at: string;
+  booking_id?: string;
+}
+
+export interface NotificationListResponse {
+  total: number;
+  notifications: NotificationResponse[];
+}
+
+// 在 src/types/api.ts 中添加以下类型定义
+
+// 商业统计数据相关类型定义
+export interface BusinessStatisticsResponse {
+  date: string;
+  total_revenue: number;
+  total_bookings: number;
+  new_customers: number;
+}
+
+export interface BusinessStatisticsRangeResponse {
+  start_date: string;
+  end_date: string;
+  total_revenue: number;
+  total_bookings: number;
+  new_customers: number;
+  daily_statistics: BusinessStatisticsResponse[];
+}
+
+export interface PopularServicesResponse {
+  bookable_item_id: string;
+  bookable_item_name: string;
+  booking_count: number;
+  total_revenue: number;
+}
+
+export interface PopularStaffResponse {
+  staff_member_id: string;
+  staff_member_name: string;
+  booking_count: number;
+  total_revenue: number;
+}
+
+export interface BusinessInsightsResponse {
+  popular_services: PopularServicesResponse[];
+  popular_staff: PopularStaffResponse[];
+  peak_booking_days: {
+    day_of_week: number;
+    booking_count: number;
+  }[];
+  peak_booking_hours: {
+    hour: number;
+    booking_count: number;
+  }[];
+}

@@ -1,0 +1,104 @@
+// src/utils/databaseSetup.ts
+
+import { neo4jClient } from '../db';
+
+/**
+ * 建立 Neo4j 數據庫所需的索引和約束
+ */
+export async function setupDatabaseConstraints(): Promise<void> {
+  try {
+    console.log('正在建立數據庫索引和約束...');
+
+    // 唯一性約束 - 使用新語法 FOR 和 REQUIRE
+    const uniqueConstraints = [
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (b:Business) REQUIRE b.business_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (u:User) REQUIRE u.user_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (b:Booking) REQUIRE b.booking_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (s:Staff) REQUIRE s.staff_member_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (c:Customer) REQUIRE c.customer_profile_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (b:BookableItem) REQUIRE b.bookable_item_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (c:Category) REQUIRE c.bookable_item_category_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (m:MembershipLevel) REQUIRE m.membership_level_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (a:Advertisement) REQUIRE a.advertisement_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (n:Notification) REQUIRE n.notification_id IS UNIQUE',
+      'CREATE CONSTRAINT IF NOT EXISTS FOR (s:StaffAvailability) REQUIRE s.staff_availability_id IS UNIQUE'
+    ];
+
+    for (const constraint of uniqueConstraints) {
+      await neo4jClient.runQuery(constraint);
+    }
+
+    // 重要索引 - 索引語法保持不變
+    const indexes = [
+      'CREATE INDEX IF NOT EXISTS FOR (b:Booking) ON (b.business_id, b.booking_status_code)',
+      'CREATE INDEX IF NOT EXISTS FOR (b:Booking) ON (b.business_id, b.booking_start_datetime)',
+      'CREATE INDEX IF NOT EXISTS FOR (b:BookableItem) ON (b.business_id, b.bookable_item_type_code)',
+      'CREATE INDEX IF NOT EXISTS FOR (s:Staff) ON (s.business_id, s.staff_member_is_active)',
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer) ON (c.customer_name)',
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer) ON (c.customer_email)',
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer) ON (c.customer_phone)',
+      'CREATE INDEX IF NOT EXISTS FOR (a:Advertisement) ON (a.business_id)',
+      'CREATE INDEX IF NOT EXISTS FOR (a:Advertisement) ON (a.advertisement_status)',
+      'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.email)',
+      'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.user_name)',
+      'CREATE INDEX IF NOT EXISTS FOR (sa:StaffAvailability) ON (sa.day_of_week)',
+      'CREATE INDEX IF NOT EXISTS FOR (sa:StaffAvailability) ON (sa.staff_member_id)'
+    ];
+
+    for (const index of indexes) {
+      await neo4jClient.runQuery(index);
+    }
+
+    // 關係索引可能需要特殊處理，取決於Neo4j版本
+    try {
+      const relationshipIndexes = [
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:MADE]->() ON (r)',
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:BOOKS]->() ON (r)',
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:ASSIGNED_TO]->() ON (r)'
+      ];
+
+      for (const index of relationshipIndexes) {
+        await neo4jClient.runQuery(index);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn('關係索引創建失敗，可能需要Neo4j Enterprise版本或不同的語法:', errorMessage);
+    }
+
+    console.log('數據庫索引和約束建立完成');
+  } catch (error) {
+    console.error('建立數據庫索引和約束時發生錯誤:', error);
+    throw error;
+  }
+}
+
+/**
+ * 驗證數據庫連接並執行基本查詢
+ */
+export async function verifyDatabaseConnection(): Promise<boolean> {
+  try {
+    const result = await neo4jClient.runQuery('RETURN 1 as n');
+    return result.records.length > 0 && result.records[0].get('n').toNumber() === 1;
+  } catch (error) {
+    console.error('驗證數據庫連接時發生錯誤:', error);
+    return false;
+  }
+}
+
+/**
+ * 初始化數據庫，捕獲並處理可能的錯誤
+ */
+export async function initializeDatabase(): Promise<void> {
+  try {
+    const isConnected = await verifyDatabaseConnection();
+    if (!isConnected) {
+      throw new Error('無法連接到數據庫');
+    }
+    
+    await setupDatabaseConstraints();
+    console.log('數據庫初始化成功');
+  } catch (error) {
+    console.error('初始化數據庫時發生錯誤:', error);
+    console.warn('應用將繼續啟動，但某些數據庫功能可能不可用');
+  }
+}
