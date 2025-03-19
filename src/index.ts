@@ -13,6 +13,11 @@ import categoriesRouter from './routes/categories';
 import membershipLevelsRouter from './routes/membershipLevels';
 import advertisementsRouter from './routes/advertisements';
 import userRelationshipsRouter from './routes/userRelationships';
+import staffAvailabilityRouter from './routes/staffAvailability';
+import notificationsRouter from './routes/notifications';
+import subscriptionsRouter from './routes/subscriptions';
+import businessRouter from './routes/business'; // 新增
+import usersRouter from './routes/users'; // 新增
 
 dotenv.config();
 
@@ -31,6 +36,11 @@ app.use('/api/v1', categoriesRouter);
 app.use('/api/v1', membershipLevelsRouter);
 app.use('/api/v1', advertisementsRouter);
 app.use('/api/v1', userRelationshipsRouter);
+app.use('/api/v1', staffAvailabilityRouter);
+app.use('/api/v1', notificationsRouter);
+app.use('/api/v1', subscriptionsRouter);
+app.use('/api/v1', businessRouter); // 新增
+app.use('/api/v1', usersRouter); // 新增
 
 // MCP Server 設定
 const server = new Server(

@@ -1,3 +1,5 @@
+import { UUID } from "crypto";
+
 // 通用錯誤響應類型
 export interface ErrorResponse {
   error_code: string;
@@ -227,4 +229,49 @@ export interface UserListResponse {
     user_name: string;
     customer_phone?: string;
   }[];
+}
+
+export interface CreateBusinessRequest {
+  business_name: string;
+  business_timezone: string;
+  business_contact_email?: string;
+  business_contact_phone?: string;
+  business_address?: string;
+  business_location?: {
+    latitude: number;
+    longitude: number;
+  };
+  line_destination?: string;
+}
+
+export interface CreateBusinessResponse {
+  business_id: string;
+}
+
+export interface BusinessResponse {
+  business_id: string;
+  business_name: string;
+  business_timezone: string;
+  business_contact_email?: string;
+  business_contact_phone?: string;
+  business_address?: string;
+  business_location?: {
+    latitude: number;
+    longitude: number;
+  };
+  line_destination?: string;
+}
+
+// 新增更新商家的請求類型
+export interface UpdateBusinessRequest {
+  business_name?: string;
+  business_timezone?: string;
+  business_contact_email?: string | null;
+  business_contact_phone?: string | null;
+  business_address?: string | null;
+  business_location?: {
+    latitude: number;
+    longitude: number;
+  } | null;
+  line_destination?: string | null;
 }
