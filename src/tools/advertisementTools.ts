@@ -40,9 +40,14 @@ export interface ApproveAdvertisementParams {
   reason?: string;
 }
 
+export interface UpdateAdvertisementStatusParams {
+  advertisement_id: string;
+  status: 'active' | 'completed';
+}
+
 // 廣告相關工具
 export const advertisementTools = {
-  // 創建廣告
+  // 建立廣告
   createAdvertisement: async (params: CreateAdvertisementParams): Promise<CreateAdvertisementResult> => {
     const { 
       business_id, 
@@ -55,6 +60,15 @@ export const advertisementTools = {
       advertisement_budget,
       advertisement_target_audience
     } = params;
+    
+    // 驗證資料
+    if (advertisement_name.length > 255) {
+      throw new Error('advertisement_name 超過最大長度 (255)');
+    }
+    
+    if (advertisement_description.length > 1000) {
+      throw new Error('advertisement_description 超過最大長度 (1000)');
+    }
     
     const advertisement_id = uuidv4();
     
@@ -95,8 +109,10 @@ export const advertisementTools = {
   approveAdvertisement: async (params: ApproveAdvertisementParams): Promise<void> => {
     const { advertisement_id, approved, reason } = params;
     
+    // 審核廣告，將狀態更新為 approved 或 rejected
     await neo4jClient.runQuery(
       `MATCH (a:Advertisement {advertisement_id: $advertisement_id})
+       WHERE a.advertisement_status = 'pending'
        SET a.advertisement_status = $status,
            a.updated_at = datetime()
        ${reason ? ', a.rejection_reason = $reason' : ''}
@@ -106,6 +122,42 @@ export const advertisementTools = {
         status: approved ? 'approved' : 'rejected',
         reason
       }
+    );
+  },
+  
+  // 更新廣告狀態
+  updateAdvertisementStatus: async (params: UpdateAdvertisementStatusParams): Promise<void> => {
+    const { advertisement_id, status } = params;
+    
+    // 確保只有已批准的廣告才能更新為 active 或 completed
+    const validTransitions: Record<string, string[]> = {
+      'approved': ['active'],
+      'active': ['completed']
+    };
+    
+    const result = await neo4jClient.runQuery(
+      `MATCH (a:Advertisement {advertisement_id: $advertisement_id})
+       RETURN a.advertisement_status as current_status`,
+      { advertisement_id }
+    );
+    
+    if (result.records.length === 0) {
+      throw new Error('找不到廣告');
+    }
+    
+    const currentStatus = result.records[0].get('current_status') as string;
+    const allowedStatusChanges = validTransitions[currentStatus] || [];
+    
+    if (!allowedStatusChanges.includes(status)) {
+      throw new Error(`不允許將廣告狀態從 ${currentStatus} 更新為 ${status}`);
+    }
+    
+    await neo4jClient.runQuery(
+      `MATCH (a:Advertisement {advertisement_id: $advertisement_id})
+       SET a.advertisement_status = $status,
+           a.updated_at = datetime()
+       RETURN a`,
+      { advertisement_id, status }
     );
   }
 };
