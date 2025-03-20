@@ -1,100 +1,37 @@
-// 首先定義工具名稱列表
-export const toolNames = [
-  'listTools',
-  'getBookings',
-  'createBooking',
-  'cancelBooking',
-  'getAvailableSlots',
-  'getBusinessHours',
-  'createCustomer',
-  'getCustomer',
-  'updateCustomer',
-  'listCustomers',
-  'createStaff',
-  'getStaff',
-  'updateStaff',
-  'listStaff',
-  'addStaffAvailability',
-  'assignServiceToStaff',
-  'createService',
-  'getService',
-  'updateService',
-  'listServices',
-  'createCategory',
-  'getCategory',
-  'updateCategory',
-  'listCategories',
-  'createMembershipLevel',
-  'getMembershipLevel',
-  'assignMembershipLevel',
-  'updateMembershipLevel',
-  'listMembershipLevels',
-  'createAdvertisement',
-  'getAdvertisement',
-  'approveAdvertisement',
-  'updateAdvertisementStatus',
-  'updateAdvertisement',
-  'listAdvertisements',
-  'createUserRelationship',
-  'getUserRelationship',
-  'updateUserRelationship',
-  'listUserRelationships',
-  'getSuitableUsersForAdvertisement'
-];
+/**
+ * 工具索引檔案
+ * 匯集所有工具定義並匯出標準化介面
+ */
 
-// 現在導入各個工具模塊
-import { listTools } from './listTools';
-import { bookingTools } from './bookingTools';
-import { businessTools } from './businessTools';
-import { categoryTools } from './categoryTools';
-import { customerTools } from './customerTools';
-import { serviceTools } from './serviceTools';
-import { staffTools } from './staffTools';
-import { membershipLevelTools } from './membershipLevelTools';
-import { userRelationshipTools } from './userRelationshipTools';
-import { notificationTools } from './notificationTools';
-import { subscriptionTools } from './subscriptionTools';
-import { userTools } from './userTools';
-import { advertisementTools } from './advertisementTools';
+// 導入標準化工具定義
+import { toolDefinitions, listToolsTool } from './toolDefinitions';
 
-// 導出所有工具
-export const tools = {
-  // 工具列表工具
-  listTools,
+// 首先定義工具名稱列表 - 用於外部參考
+export const toolNames = toolDefinitions.map(tool => tool.name);
+
+/**
+ * 建立工具映射表
+ * 將所有工具定義轉換為名稱->執行函數的映射
+ */
+function createToolsMap() {
+  const toolMap: Record<string, (...args: any[]) => Promise<any>> = {};
   
-  // 預約相關工具
-  ...bookingTools,
+  // 將每個工具的 execute 函數添加到映射表
+  toolDefinitions.forEach(tool => {
+    toolMap[tool.name] = tool.execute;
+  });
   
-  // 商家相關工具
-  ...businessTools,
-  
-  // 類別相關工具
-  ...categoryTools,
-  
-  // 顧客相關工具
-  ...customerTools,
-  
-  // 服務相關工具
-  ...serviceTools,
-  
-  // 員工相關工具
-  ...staffTools,
-  
-  // 會員等級相關工具
-  ...membershipLevelTools,
-  
-  // 使用者關係相關工具
-  ...userRelationshipTools,
-  
-  // 通知相關工具
-  ...notificationTools,
-  
-  // 訂閱相關工具
-  ...subscriptionTools,
-  
-  // 使用者相關工具
-  ...userTools,
-  
-  // 廣告相關工具
-  ...advertisementTools
-};
+  return toolMap;
+}
+
+/**
+ * 所有工具定義的映射表
+ * 將所有註冊工具統一匯出
+ */
+export const tools = createToolsMap();
+
+// 確保映射表包含所有應該有的工具
+console.log(`tools 映射表中共有 ${Object.keys(tools).length} 個工具`);
+
+// 導出所有工具和工具定義
+export { toolDefinitions };
