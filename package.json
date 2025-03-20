@@ -5,7 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "generate-tools": "ts-node src/scripts/generateToolDefs.ts",
+    "generate-docs": "ts-node src/scripts/generateToolDocs.ts",
+    "prebuild": "npm run generate-tools && npm run generate-docs",
     "build": "tsc",
+    "prestart": "npm run build",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "test": "jest"

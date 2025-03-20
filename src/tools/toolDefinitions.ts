@@ -6,6 +6,7 @@ import { ToolDefinition } from '../types/tool';
 import { scanToolDefinitions, checkToolCoverage } from '../utils/toolScanner';
 import * as path from 'path';
 import { createToolDefinition } from '../utils/toolRegistration';
+import { generatedToolDefinitions } from './generatedToolDefs';
 
 // 工具目錄路徑
 const TOOLS_DIR = path.join(__dirname);
@@ -80,6 +81,18 @@ export async function loadToolDefinitions(): Promise<ToolDefinition[]> {
     // 避免重複添加 listTools
     if (tool.name !== 'listTools') {
       toolDefinitions.push(tool);
+    }
+  });
+  
+  // 添加手動生成的工具定義
+  console.log(`添加 ${generatedToolDefinitions.length} 個手動生成的工具定義`);
+  const existingToolNames = new Set(toolDefinitions.map(tool => tool.name));
+  
+  generatedToolDefinitions.forEach(tool => {
+    // 避免重複添加工具
+    if (!existingToolNames.has(tool.name)) {
+      toolDefinitions.push(tool);
+      existingToolNames.add(tool.name);
     }
   });
   

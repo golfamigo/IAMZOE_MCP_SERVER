@@ -142,6 +142,7 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
       fileName: string;
       toolName: string;
       description?: string;
+      implementationName?: string;
     }> = [];
     
     // 檢查每個工具檔案
@@ -156,7 +157,13 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
         const functionMatches = [
           ...content.matchAll(/export\s+async\s+function\s+(\w+)/g),
           ...content.matchAll(/export\s+const\s+(\w+)\s*=\s*async\s+function/g),
-          ...content.matchAll(/(\w+):\s*async\s*\([^)]*\)\s*=>/g)
+          ...content.matchAll(/(\w+):\s*async\s*\([^)]*\)\s*=>/g),
+          ...content.matchAll(/export\s+const\s+(\w+)Impl\s*=\s*async\s*\([^)]*\)\s*=>/g)
+        ];
+        
+        // 尋找使用 createToolDefinition 創建的工具定義
+        const toolDefMatches = [
+          ...content.matchAll(/export\s+const\s+(\w+)\s*=\s*createToolDefinition\s*\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]/g)
         ];
         
         // 提取註解中的描述
@@ -189,10 +196,41 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
             continue;
           }
           
+          // 如果是 xxxImpl 函數，則尋找對應的工具定義
+          if (toolName.endsWith('Impl')) {
+            const baseName = toolName.replace(/Impl$/, '');
+            
+            // 檢查是否有對應的工具定義
+            const toolDefMatch = toolDefMatches.find(m => m[1] === baseName);
+            
+            if (toolDefMatch) {
+              // 已經有對應的工具定義，跳過
+              continue;
+            }
+          }
+          
           toolDefinitions.push({
             fileName: file.name.replace('.ts', ''),
             toolName,
             description: descriptions.get(toolName) || `${toolName} 工具`
+          });
+        }
+        
+        // 收集所有使用 createToolDefinition 創建的工具定義
+        for (const match of toolDefMatches) {
+          const varName = match[1]; // 變數名稱，例如 createAdvertisement
+          const toolName = match[2]; // 工具名稱，例如 'createAdvertisement'
+          const description = match[3]; // 工具描述
+          
+          // 尋找對應的實現函數
+          const implName = `${varName}Impl`;
+          const implMatch = functionMatches.find(m => m[1] === implName);
+          
+          toolDefinitions.push({
+            fileName: file.name.replace('.ts', ''),
+            toolName: varName,
+            description: description || descriptions.get(varName) || `${varName} 工具`,
+            implementationName: implMatch ? implName : undefined
           });
         }
       }
@@ -206,35 +244,47 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
  * 此檔案由 generateToolDefs.ts 腳本自動生成
  * 請手動檢查並確保每個工具定義正確
  */
-import { createToolDefinition } from '../utils/toolRegistration';\n\n`;
-
+import { createToolDefinition } from '../utils/toolRegistration';
+import { ToolDefinition } from '../types/tool';\n\n`;
+    
     // 導入工具函數
     const imports = new Set<string>();
     toolDefinitions.forEach(tool => {
-      imports.add(`import { ${tool.toolName} } from './${tool.fileName}';\n`);
+      if (tool.implementationName) {
+        imports.add(`import { ${tool.implementationName} } from './${tool.fileName}';\n`);
+      } else {
+        imports.add(`import { ${tool.toolName} } from './${tool.fileName}';\n`);
+      }
     });
     
     imports.forEach(importStmt => {
       fileContent += importStmt;
     });
     
-    fileContent += `\n// 工具定義列表\nexport const generatedToolDefinitions = [\n`;
+    fileContent += `\n// 工具定義列表\nexport const generatedToolDefinitions: ToolDefinition[] = [\n`;
     
     // 添加每個工具的定義
     toolDefinitions.forEach(tool => {
       fileContent += `  // ${tool.fileName} 工具\n`;
-      fileContent += `  createToolDefinition(\n`;
-      fileContent += `    '${tool.toolName}',\n`;
-      fileContent += `    '${tool.description}',\n`;
-      fileContent += `    {\n`;
-      fileContent += `      type: 'object',\n`;
-      fileContent += `      properties: {\n`;
-      fileContent += `        // TODO: 添加參數定義\n`;
-      fileContent += `      },\n`;
-      fileContent += `      required: [/* TODO: 添加必要參數 */]\n`;
-      fileContent += `    },\n`;
-      fileContent += `    ${tool.toolName}\n`;
-      fileContent += `  ),\n\n`;
+      
+      if (tool.implementationName) {
+        // 使用 createToolDefinition 創建工具定義
+        fileContent += `  createToolDefinition(\n`;
+        fileContent += `    '${tool.toolName}',\n`;
+        fileContent += `    '${tool.description}',\n`;
+        fileContent += `    {\n`;
+        fileContent += `      type: 'object',\n`;
+        fileContent += `      properties: {\n`;
+        fileContent += `        // TODO: 添加參數定義\n`;
+        fileContent += `      },\n`;
+        fileContent += `      required: [/* TODO: 添加必要參數 */]\n`;
+        fileContent += `    },\n`;
+        fileContent += `    ${tool.implementationName}\n`;
+        fileContent += `  ),\n\n`;
+      } else {
+        // 直接使用已有的工具定義
+        fileContent += `  ${tool.toolName},\n\n`;
+      }
     });
     
     fileContent += `];\n`;
