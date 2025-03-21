@@ -4,6 +4,7 @@
  */
 import { v4 as uuidv4 } from 'uuid';
 import { neo4jClient } from '../db';
+import { toJsNumber, parseNeo4jDateTime } from '../utils/neo4jUtils';
 import { createToolDefinition } from '../utils/toolRegistration';
 import { validateParams } from '../types/tool';
 import { throwIfNotFound, throwInvalidParam, throwBusinessLogicError } from '../utils/errorHandling';
@@ -248,7 +249,7 @@ export const getAvailableSlotsImpl = async (params: GetAvailableSlotsParams): Pr
   } else {
     businessHoursResult.records.forEach(record => {
       businessHours.push({
-        day_of_week: record.get('day_of_week').toNumber(),
+        day_of_week: toJsNumber(record.get('day_of_week')),
         start_time: record.get('start_time'),
         end_time: record.get('end_time')
       });
@@ -275,7 +276,7 @@ export const getAvailableSlotsImpl = async (params: GetAvailableSlotsParams): Pr
   staffAvailabilityResult.records.forEach(record => {
     staffAvailability.push({
       staff_id: record.get('staff_id'),
-      day_of_week: record.get('day_of_week').toNumber(),
+      day_of_week: toJsNumber(record.get('day_of_week')),
       start_time: record.get('start_time'),
       end_time: record.get('end_time')
     });
@@ -302,9 +303,9 @@ export const getAvailableSlotsImpl = async (params: GetAvailableSlotsParams): Pr
   const existingBookings: ExistingBooking[] = [];
   existingBookingsResult.records.forEach(record => {
     existingBookings.push({
-      start_datetime: new Date(record.get('start_datetime')),
-      end_datetime: new Date(record.get('end_datetime')),
-      unit_count: record.get('unit_count').toNumber()
+      start_datetime: parseNeo4jDateTime(record.get('start_datetime')),
+      end_datetime: parseNeo4jDateTime(record.get('end_datetime')),
+      unit_count: toJsNumber(record.get('unit_count'))
     });
   });
   

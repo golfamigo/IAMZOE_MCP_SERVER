@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   CreateStaffAvailabilityRequest, 
@@ -169,7 +170,7 @@ router.get('/staff/:staff_member_id/availability', authenticateApiKey, async (re
     // 获取总数
     const countQuery = query + ` RETURN count(sa) as total`;
     const countResult = await neo4jClient.runQuery(countQuery, params);
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 获取可用性列表
     query += ` RETURN sa ORDER BY sa.day_of_week, sa.start_time`;
@@ -181,7 +182,7 @@ router.get('/staff/:staff_member_id/availability', authenticateApiKey, async (re
       return {
         staff_availability_id: sa.staff_availability_id,
         staff_member_id: sa.staff_member_id,
-        day_of_week: sa.day_of_week.toNumber(),
+        day_of_week: toJsNumber(sa.day_of_week),
         start_time: sa.start_time,
         end_time: sa.end_time
       } as StaffAvailabilityResponse;

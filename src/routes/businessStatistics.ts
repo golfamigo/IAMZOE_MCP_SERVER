@@ -7,6 +7,7 @@ import {
   BusinessInsightsResponse,
   ErrorResponse
 } from '../types/api';
+import { toJsNumber } from '../utils/neo4jUtils';
 
 const router = express.Router();
 
@@ -65,8 +66,8 @@ router.get('/businesses/:business_id/statistics', authenticateApiKey, async (req
       end_date: end_date as string
     });
 
-    const totalBookings = summaryResult.records[0].get('total_bookings').toNumber();
-    const totalRevenue = summaryResult.records[0].get('total_revenue')?.toNumber() || 0;
+    const totalBookings = toJsNumber(summaryResult.records[0].get('total_bookings'));
+    const totalRevenue = toJsNumber(summaryResult.records[0].get('total_revenue'));
 
     // 获取该日期范围内的新客户数
     const newCustomersQuery = `
@@ -81,7 +82,7 @@ router.get('/businesses/:business_id/statistics', authenticateApiKey, async (req
       end_date: end_date as string
     });
 
-    const newCustomers = newCustomersResult.records[0].get('new_customers').toNumber();
+    const newCustomers = toJsNumber(newCustomersResult.records[0].get('new_customers'));
 
     // 获取按日期分组的统计数据
     const dailyStatsQuery = `
@@ -122,7 +123,7 @@ router.get('/businesses/:business_id/statistics', authenticateApiKey, async (req
     // 创建日期到新客户数的映射
     const dateToNewCustomers: Record<string, number> = {};
     dailyNewCustomersResult.records.forEach(record => {
-      dateToNewCustomers[record.get('date')] = record.get('daily_new_customers').toNumber();
+      dateToNewCustomers[record.get('date')] = toJsNumber(record.get('daily_new_customers'));
     });
 
     // 构建日统计数据
@@ -130,8 +131,8 @@ router.get('/businesses/:business_id/statistics', authenticateApiKey, async (req
       const date = record.get('date');
       return {
         date,
-        total_revenue: record.get('daily_revenue')?.toNumber() || 0,
-        total_bookings: record.get('daily_bookings').toNumber(),
+        total_revenue: toJsNumber(record.get('daily_revenue')),
+        total_bookings: toJsNumber(record.get('daily_bookings')),
         new_customers: dateToNewCustomers[date] || 0
       };
     });
@@ -276,22 +277,22 @@ router.get('/businesses/:business_id/insights', authenticateApiKey, async (req, 
       popular_services: popularServicesResult.records.map(record => ({
         bookable_item_id: record.get('bookable_item_id'),
         bookable_item_name: record.get('bookable_item_name'),
-        booking_count: record.get('booking_count').toNumber(),
-        total_revenue: record.get('service_revenue')?.toNumber() || 0
+        booking_count: toJsNumber(record.get('booking_count')),
+        total_revenue: toJsNumber(record.get('service_revenue'))
       })),
       popular_staff: popularStaffResult.records.map(record => ({
         staff_member_id: record.get('staff_member_id'),
         staff_member_name: record.get('staff_member_name'),
-        booking_count: record.get('booking_count').toNumber(),
-        total_revenue: record.get('staff_revenue')?.toNumber() || 0
+        booking_count: toJsNumber(record.get('booking_count')),
+        total_revenue: toJsNumber(record.get('staff_revenue'))
       })),
       peak_booking_days: peakDaysResult.records.map(record => ({
-        day_of_week: record.get('day_of_week').toNumber(),
-        booking_count: record.get('booking_count').toNumber()
+        day_of_week: toJsNumber(record.get('day_of_week')),
+        booking_count: toJsNumber(record.get('booking_count'))
       })),
       peak_booking_hours: peakHoursResult.records.map(record => ({
-        hour: record.get('hour').toNumber(),
-        booking_count: record.get('booking_count').toNumber()
+        hour: toJsNumber(record.get('hour')),
+        booking_count: toJsNumber(record.get('booking_count'))
       }))
     };
 

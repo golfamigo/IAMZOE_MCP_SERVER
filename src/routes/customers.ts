@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   CreateCustomerRequest, 
@@ -366,7 +367,7 @@ return;
     // 總數查詢
     const countQuery = query + ` RETURN count(c) as total`;
     const countResult = await neo4jClient.runQuery(countQuery, params);
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 分頁查詢
     query += ` RETURN c ORDER BY c.customer_name SKIP $offset LIMIT $limit`;
@@ -440,7 +441,7 @@ return;
     // 轉換為響應格式
     const similarCustomers = similarResult.records.map(record => {
       const c2 = record.get('c2').properties;
-      const common_items = record.get('common_items').toNumber();
+      const common_items = toJsNumber(record.get('common_items'));
       return {
         customer_profile_id: c2.customer_profile_id,
         customer_name: c2.customer_name,

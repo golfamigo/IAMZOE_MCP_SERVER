@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   CreateUserRelationshipRequest, 
@@ -366,7 +367,7 @@ return;
     // 總數查詢
     const countQuery = `${query.split('RETURN')[0]} RETURN count(r) as total`;
     const countResult = await neo4jClient.runQuery(countQuery, params);
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 分頁查詢
     query += ` ORDER BY r.created_at DESC SKIP $offset LIMIT $limit`;
@@ -464,7 +465,7 @@ return;
     // 總數查詢
     const countQuery = `${query.split('RETURN')[0]} RETURN count(u) as total`;
     const countResult = await neo4jClient.runQuery(countQuery, params);
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 分頁查詢
     const result = await neo4jClient.runQuery(

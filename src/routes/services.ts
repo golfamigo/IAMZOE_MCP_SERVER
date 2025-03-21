@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   CreateServiceRequest, 
@@ -324,7 +325,7 @@ return;
     // 總數查詢
     const countQuery = query + ` RETURN count(bi) as total`;
     const countResult = await neo4jClient.runQuery(countQuery, params);
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 分頁查詢
     query += ` RETURN bi ORDER BY bi.bookable_item_name SKIP $offset LIMIT $limit`;
@@ -398,7 +399,7 @@ return;
     // 轉換為響應格式
     const relatedServices = relatedResult.records.map(record => {
       const bi2 = record.get('bi2').properties;
-      const common_bookings = record.get('common_bookings').toNumber();
+      const common_bookings = toJsNumber(record.get('common_bookings'));
       return {
         bookable_item_id: bi2.bookable_item_id,
         bookable_item_name: bi2.bookable_item_name,

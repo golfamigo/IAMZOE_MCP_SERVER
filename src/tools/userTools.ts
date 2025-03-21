@@ -4,6 +4,7 @@
  */
 import { v4 as uuidv4 } from 'uuid';
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { createToolDefinition } from '../utils/toolRegistration';
 import { validateParams } from '../types/tool';
 
@@ -169,7 +170,7 @@ export const getSuitableUsersForAdvertisementImpl = async (params: GetSuitableUs
     }
   );
   
-  const total = countResult.records[0].get('total').toNumber();
+  const total = toJsNumber(countResult.records[0].get('total'));
   
   // 獲取符合條件的用戶
   const result = await neo4jClient.runQuery(

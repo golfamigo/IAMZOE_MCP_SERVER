@@ -1,6 +1,7 @@
 // src/utils/databaseSetup.ts
 
 import { neo4jClient } from '../db';
+import { toJsNumber } from './neo4jUtils';
 
 /**
  * 建立 Neo4j 數據庫所需的索引和約束
@@ -80,7 +81,7 @@ export async function setupDatabaseConstraints(): Promise<void> {
 export async function verifyDatabaseConnection(): Promise<boolean> {
   try {
     const result = await neo4jClient.runQuery('RETURN 1 as n');
-    return result.records.length > 0 && result.records[0].get('n').toNumber() === 1;
+    return result.records.length > 0 && toJsNumber(result.records[0].get('n')) === 1;
   } catch (error) {
     console.error('驗證數據庫連接時發生錯誤:', error);
     return false;

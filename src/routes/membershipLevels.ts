@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   CreateMembershipLevelRequest, 
@@ -319,7 +320,7 @@ return;
 
     // 總數查詢
     const countResult = await neo4jClient.runQuery(query + ` RETURN count(m) as total`, params);
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 分頁查詢
     const result = await neo4jClient.runQuery(

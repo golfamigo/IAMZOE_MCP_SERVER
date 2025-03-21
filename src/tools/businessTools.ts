@@ -3,6 +3,7 @@
  * 提供商家營業時間查詢等功能
  */
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { createToolDefinition } from '../utils/toolRegistration';
 
 // 接口定義
@@ -54,7 +55,7 @@ export const getBusinessHoursImpl = async (params: GetBusinessHoursParams): Prom
   return result.records.map(record => {
     const bh = record.get('bh').properties;
     return {
-      day_of_week: bh.day_of_week.toNumber(),
+      day_of_week: toJsNumber(bh.day_of_week),
       start_time: bh.start_time,
       end_time: bh.end_time
     };

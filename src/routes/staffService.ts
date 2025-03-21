@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   StaffServiceRequest, 
@@ -134,7 +135,7 @@ router.get('/staff/:staff_member_id/services', authenticateApiKey, async (req: R
       RETURN count(bi) as total`;
       
     const countResult = await neo4jClient.runQuery(countQuery, { staff_member_id });
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     const query = `
       MATCH (s:Staff {staff_member_id: $staff_member_id})-[:CAN_PROVIDE]->(bi:BookableItem)

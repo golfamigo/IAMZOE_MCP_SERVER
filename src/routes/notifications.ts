@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   CreateNotificationRequest, 
@@ -172,7 +173,7 @@ router.get('/users/:user_id/notifications', authenticateApiKey, async (req: Requ
       RETURN count(n) as total`;
       
     const countResult = await neo4jClient.runQuery(countQuery, { user_id });
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 获取通知列表
     const query = `

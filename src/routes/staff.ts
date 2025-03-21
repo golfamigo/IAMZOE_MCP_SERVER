@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import ajv from '../utils/ajv'; // Use centralized AJV
 import { neo4jClient } from '../db';
+import { toJsNumber } from '../utils/neo4jUtils';
 import { authenticateApiKey } from '../middleware/auth';
 import { 
   CreateStaffRequest, 
@@ -363,7 +364,7 @@ return;
     // 總數查詢
     const countQuery = query + ` RETURN count(s) as total`;
     const countResult = await neo4jClient.runQuery(countQuery, params);
-    const total = countResult.records[0].get('total').toNumber();
+    const total = toJsNumber(countResult.records[0].get('total'));
 
     // 分頁查詢
     query += ` RETURN s ORDER BY s.staff_member_name SKIP $offset LIMIT $limit`;
@@ -443,7 +444,7 @@ router.get('/businesses/:business_id/staff/collaborators', authenticateApiKey, a
     if (staff_member_id) {
       collaborators = result.records.map(record => {
         const s2 = record.get('s2').properties;
-        const common_bookings = record.get('common_bookings').toNumber();
+        const common_bookings = toJsNumber(record.get('common_bookings'));
         return {
           staff_member_id: s2.staff_member_id,
           staff_member_name: s2.staff_member_name,
@@ -454,7 +455,7 @@ router.get('/businesses/:business_id/staff/collaborators', authenticateApiKey, a
       collaborators = result.records.map(record => {
         const s1 = record.get('s1').properties;
         const s2 = record.get('s2').properties;
-        const common_bookings = record.get('common_bookings').toNumber();
+        const common_bookings = toJsNumber(record.get('common_bookings'));
         return {
           staff_pair: [
             {
