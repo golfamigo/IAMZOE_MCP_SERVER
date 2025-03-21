@@ -1,6 +1,6 @@
 # IAMZOE MCP 伺服器工具使用指南
 
-此文檔自動生成於 2025-03-21T01:37:35.312Z
+此文檔自動生成於 2025-03-21T02:52:56.654Z
 
 ## 目錄
 
@@ -11,26 +11,27 @@
 5. [createBooking](#createbooking) - 創建新的預約
 6. [cancelBooking](#cancelbooking) - 取消已存在的預約
 7. [getBusinessHours](#getbusinesshours) - 獲取商家營業時間
-8. [createCategory](#createcategory) - 創建新的商品或服務類別
-9. [createCustomer](#createcustomer) - 建立新的顧客資料
-10. [getCustomer](#getcustomer) - 獲取單一顧客的詳細資料
-11. [listTools](#listtools) - 列出所有可用的工具及其描述
-12. [createMembershipLevel](#createmembershiplevel) - 建立新的會員等級
-13. [getMembershipLevel](#getmembershiplevel) - 獲取會員等級詳細資訊
-14. [assignMembershipLevel](#assignmembershiplevel) - 將客戶指派到特定的會員等級
-15. [createNotification](#createnotification) - 創建新的系統通知
-16. [createService](#createservice) - 創建新的服務項目
-17. [getService](#getservice) - 獲取服務項目詳細資訊
-18. [getAvailableSlots](#getavailableslots) - 獲取服務的可用時間段
-19. [createStaff](#createstaff) - 建立新員工記錄
-20. [getStaff](#getstaff) - 獲取員工資訊
-21. [addStaffAvailability](#addstaffavailability) - 設定員工工作可用時段
-22. [assignServiceToStaff](#assignservicetostaff) - 將服務項目指派給員工提供
-23. [createSubscription](#createsubscription) - 創建定期預約訂閱
-24. [createUserRelationship](#createuserrelationship) - 創建使用者之間的關係
-25. [getUserRelationship](#getuserrelationship) - 獲取兩個使用者之間的關係
-26. [createUser](#createuser) - 創建新的使用者
-27. [getSuitableUsersForAdvertisement](#getsuitableusersforadvertisement) - 獲取符合廣告目標受眾條件的使用者
+8. [createBusiness](#createbusiness) - 建立新的商家
+9. [createCategory](#createcategory) - 創建新的商品或服務類別
+10. [createCustomer](#createcustomer) - 建立新的顧客資料
+11. [getCustomer](#getcustomer) - 獲取單一顧客的詳細資料
+12. [listTools](#listtools) - 列出所有可用的工具及其描述
+13. [createMembershipLevel](#createmembershiplevel) - 建立新的會員等級
+14. [getMembershipLevel](#getmembershiplevel) - 獲取會員等級詳細資訊
+15. [assignMembershipLevel](#assignmembershiplevel) - 將客戶指派到特定的會員等級
+16. [createNotification](#createnotification) - 創建新的系統通知
+17. [createService](#createservice) - 創建新的服務項目
+18. [getService](#getservice) - 獲取服務項目詳細資訊
+19. [getAvailableSlots](#getavailableslots) - 獲取服務的可用時間段
+20. [createStaff](#createstaff) - 建立新員工記錄
+21. [getStaff](#getstaff) - 獲取員工資訊
+22. [addStaffAvailability](#addstaffavailability) - 設定員工工作可用時段
+23. [assignServiceToStaff](#assignservicetostaff) - 將服務項目指派給員工提供
+24. [createSubscription](#createsubscription) - 創建定期預約訂閱
+25. [createUserRelationship](#createuserrelationship) - 創建使用者之間的關係
+26. [getUserRelationship](#getuserrelationship) - 獲取兩個使用者之間的關係
+27. [createUser](#createuser) - 創建新的使用者
+28. [getSuitableUsersForAdvertisement](#getsuitableusersforadvertisement) - 獲取符合廣告目標受眾條件的使用者
 
 ## 工具詳細說明
 
@@ -189,6 +190,7 @@
 | 參數名稱 | 類型 | 必填 | 說明 |
 | -------- | ---- | ---- | ---- |
 | `business_id` | string | 是 | 商家 ID |
+| `customer_profile_id` | string | 是 | 客戶資料 ID |
 | `bookable_item_id` | string | 是 | 可預約項目 ID |
 | `start_datetime` | string | 是 | 預約開始時間，ISO 8601 格式 |
 | `end_datetime` | string | 是 | 預約結束時間，ISO 8601 格式 |
@@ -201,6 +203,7 @@
   "name": "createBooking",
   "arguments": {
   "business_id": "00000000-0000-0000-0000-000000000000",
+  "customer_profile_id": "00000000-0000-0000-0000-000000000000",
   "bookable_item_id": "00000000-0000-0000-0000-000000000000",
   "start_datetime": "2025-01-01",
   "end_datetime": "2025-01-01",
@@ -210,7 +213,7 @@
 ```
 
 **注意事項:**
-- 必須提供參數: `business_id`, `bookable_item_id`, `start_datetime`, `end_datetime`, `unit_count`
+- 必須提供參數: `business_id`, `customer_profile_id`, `bookable_item_id`, `start_datetime`, `end_datetime`, `unit_count`
 - 可能的錯誤代碼:
   - `InvalidParams`: 當提供的參數不完整或格式錯誤
   - `MethodNotFound`: 當呼叫不存在的工具
@@ -277,6 +280,47 @@
 
 **注意事項:**
 - 必須提供參數: `business_id`
+- 可能的錯誤代碼:
+  - `InvalidParams`: 當提供的參數不完整或格式錯誤
+  - `MethodNotFound`: 當呼叫不存在的工具
+  - `InternalError`: 當工具執行過程中發生內部錯誤
+  - `BusinessLogicError`: 當違反業務邏輯規則
+
+---
+
+### createBusiness
+
+**描述:** 建立新的商家
+
+**輸入參數:**
+
+| 參數名稱 | 類型 | 必填 | 說明 |
+| -------- | ---- | ---- | ---- |
+| `business_name` | string | 是 | 商家名稱 |
+| `business_type` | string | 是 | 商家類型 |
+| `business_address` | string | 否 | 商家地址（可選） |
+| `business_phone` | string | 否 | 商家電話號碼（可選） |
+| `business_email` | string | 否 | 商家電子郵件（可選） |
+| `business_description` | string | 否 | 商家描述（可選） |
+
+**示例:**
+
+```json
+{
+  "name": "createBusiness",
+  "arguments": {
+  "business_name": "範例文字",
+  "business_type": "範例文字",
+  "business_address": "範例文字",
+  "business_phone": "+123456789",
+  "business_email": "user@example.com",
+  "business_description": "範例文字"
+}
+}
+```
+
+**注意事項:**
+- 必須提供參數: `business_name`, `business_type`
 - 可能的錯誤代碼:
   - `InvalidParams`: 當提供的參數不完整或格式錯誤
   - `MethodNotFound`: 當呼叫不存在的工具
@@ -534,6 +578,7 @@
 | -------- | ---- | ---- | ---- |
 | `notification_type` | string | 是 | 通知類型，例如：system, booking, promotion 等 |
 | `notification_content` | string | 是 | 通知內容 |
+| `business_id` | string | 否 | 商家 ID（可選） |
 
 **示例:**
 
@@ -542,7 +587,8 @@
   "name": "createNotification",
   "arguments": {
   "notification_type": "範例文字",
-  "notification_content": "範例文字"
+  "notification_content": "範例文字",
+  "business_id": "00000000-0000-0000-0000-000000000000"
 }
 }
 ```
@@ -928,7 +974,7 @@
 | `user_name` | string | 是 | 使用者名稱 |
 | `line_id` | string | 否 | LINE ID |
 | `line_notification_enabled` | boolean | 否 | 是否啟用 LINE 通知 |
-| `line_language_preference` | string | 否 | LINE 語言偏好 |
+| `line_language_preference` | string (zh-TW, en-US, ja-JP, ko-KR, zh-CN, th-TH) | 否 | LINE 語言偏好 |
 | `email` | string | 是 | 電子郵件 |
 | `phone` | string | 否 | 電話號碼 |
 
@@ -941,7 +987,7 @@
   "user_name": "範例文字",
   "line_id": "00000000-0000-0000-0000-000000000000",
   "line_notification_enabled": true,
-  "line_language_preference": "範例文字",
+  "line_language_preference": "zh-TW",
   "email": "user@example.com",
   "phone": "+123456789"
 }

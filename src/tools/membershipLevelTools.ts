@@ -124,6 +124,14 @@ export const createMembershipLevelImpl = async (params: CreateMembershipLevelPar
       }
     );
     
+    // 建立會員等級與商家的關係
+    await neo4jClient.runQuery(
+      `MATCH (b:Business {business_id: $business_id})
+       MATCH (ml:MembershipLevel {membership_level_id: $membership_level_id})
+       CREATE (ml)-[:BELONGS_TO]->(b)`,
+      { business_id, membership_level_id }
+    );
+    
     return { membership_level_id };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

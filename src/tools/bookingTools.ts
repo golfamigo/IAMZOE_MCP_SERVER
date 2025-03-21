@@ -26,6 +26,7 @@ export interface GetBookingsParams {
 
 export interface CreateBookingParams {
   business_id: string;
+  customer_profile_id: string; // 新增客戶ID參數
   bookable_item_id: string;
   start_datetime: string;
   end_datetime: string;
@@ -60,6 +61,10 @@ const createBookingSchema = {
       type: 'string', 
       description: '商家 ID' 
     },
+    customer_profile_id: { 
+      type: 'string', 
+      description: '客戶資料 ID' 
+    },
     bookable_item_id: { 
       type: 'string', 
       description: '可預約項目 ID' 
@@ -77,7 +82,7 @@ const createBookingSchema = {
       description: '預約單位數量' 
     }
   },
-  required: ['business_id', 'bookable_item_id', 'start_datetime', 'end_datetime', 'unit_count']
+  required: ['business_id', 'customer_profile_id', 'bookable_item_id', 'start_datetime', 'end_datetime', 'unit_count']
 };
 
 const cancelBookingSchema = {
@@ -122,7 +127,7 @@ export const getBookingsImpl = async (params: GetBookingsParams): Promise<Bookin
 export const createBookingImpl = async (params: CreateBookingParams): Promise<CreateBookingResult> => {
   // 驗證輸入參數
   validateParams(params, createBookingSchema);
-  const { business_id, bookable_item_id, start_datetime, end_datetime, unit_count } = params;
+  const { business_id, customer_profile_id, bookable_item_id, start_datetime, end_datetime, unit_count } = params;
   
   // 驗證預約時間是否有效
   const startDate = new Date(start_datetime);
@@ -189,12 +194,80 @@ export const createBookingImpl = async (params: CreateBookingParams): Promise<Cr
     throwBusinessLogicError(`預約數量超過可用容量，目前可用: ${maxCapacityNum - totalUnits}`);
   }
   
+  // 檢查預約時間是否與員工可用時間衝突
+  // 1. 獲取可以提供該服務的員工列表
+  const staffResult = await neo4jClient.runQuery(
+    `MATCH (s:Staff)-[:CAN_PROVIDE]->(bi:BookableItem {bookable_item_id: $bookable_item_id})
+     WHERE s.business_id = $business_id AND s.staff_member_is_active = true
+     RETURN s.staff_member_id as staff_id`,
+    { business_id, bookable_item_id }
+  );
+  
+  if (staffResult.records.length === 0) {
+    throwBusinessLogicError('沒有員工可以提供此服務');
+  }
+  
+  // 2. 獲取預約日期是星期幾
+  const dayOfWeek = startDate.getDay(); // 0 = 週日, 1 = 週一, ..., 6 = 週六
+  
+  // 3. 獲取預約的開始和結束時間（僅時間部分）
+  const bookingStartTime = startDate.toTimeString().substring(0, 8); // 格式: HH:MM:SS
+  const bookingEndTime = endDate.toTimeString().substring(0, 8); // 格式: HH:MM:SS
+  
+  // 4. 檢查是否有員工在該時間段可用
+  const availabilityResult = await neo4jClient.runQuery(
+    `MATCH (s:Staff)-[:HAS_AVAILABILITY]->(sa:StaffAvailability)
+     WHERE s.staff_member_id IN $staff_ids
+     AND sa.day_of_week = $day_of_week
+     AND sa.start_time <= $booking_start_time
+     AND sa.end_time >= $booking_end_time
+     RETURN s.staff_member_id as available_staff_id`,
+    { 
+      staff_ids: staffResult.records.map(record => record.get('staff_id')),
+      day_of_week: dayOfWeek,
+      booking_start_time: bookingStartTime,
+      booking_end_time: bookingEndTime
+    }
+  );
+  
+  if (availabilityResult.records.length === 0) {
+    throwBusinessLogicError('指定時間段沒有可用員工，請選擇其他時間');
+  }
+  
+  // 5. 檢查員工在該時間段是否已有其他預約
+  const availableStaffIds = availabilityResult.records.map(record => record.get('available_staff_id'));
+  
+  // 檢查員工在該時間段是否已有其他預約
+  // 注意：這裡假設預約與員工之間的關係是 PROVIDES_SERVICE_FOR
+  const staffBookingResult = await neo4jClient.runQuery(
+    `MATCH (s:Staff)-[:PROVIDES_SERVICE_FOR]->(b:Booking)
+     WHERE s.staff_member_id IN $staff_ids
+     AND b.booking_status_code IN ['pending', 'confirmed']
+     AND datetime($start_datetime) < b.booking_end_datetime
+     AND datetime($end_datetime) > b.booking_start_datetime
+     RETURN s.staff_member_id as busy_staff_id`,
+    { 
+      staff_ids: availableStaffIds,
+      start_datetime,
+      end_datetime
+    }
+  );
+  
+  // 從可用員工中排除已有預約的員工
+  const busyStaffIds = staffBookingResult.records.map(record => record.get('busy_staff_id'));
+  const finalAvailableStaffIds = availableStaffIds.filter(id => !busyStaffIds.includes(id));
+  
+  if (finalAvailableStaffIds.length === 0) {
+    throwBusinessLogicError('所有可提供此服務的員工在指定時間段已有其他預約，請選擇其他時間');
+  }
+  
   const booking_id = uuidv4();
   
   await neo4jClient.runQuery(
     `CREATE (b:Booking {
       booking_id: $booking_id,
       business_id: $business_id,
+      customer_profile_id: $customer_profile_id,
       bookable_item_id: $bookable_item_id,
       booking_start_datetime: datetime($start_datetime),
       booking_end_datetime: datetime($end_datetime),
@@ -203,7 +276,7 @@ export const createBookingImpl = async (params: CreateBookingParams): Promise<Cr
       created_at: datetime(),
       updated_at: datetime()
     }) RETURN b`,
-    { booking_id, business_id, bookable_item_id, start_datetime, end_datetime, unit_count }
+    { booking_id, business_id, customer_profile_id, bookable_item_id, start_datetime, end_datetime, unit_count }
   );
   
   // 建立預約與可預約項目的關係
@@ -213,6 +286,36 @@ export const createBookingImpl = async (params: CreateBookingParams): Promise<Cr
      CREATE (b)-[:BOOKS]->(bi)`,
     { booking_id, bookable_item_id }
   );
+  
+  // 建立預約與商家的關係
+  await neo4jClient.runQuery(
+    `MATCH (b:Booking {booking_id: $booking_id})
+     MATCH (bus:Business {business_id: $business_id})
+     CREATE (b)-[:BELONGS_TO]->(bus)`,
+    { booking_id, business_id }
+  );
+  
+  // 建立預約與客戶的關係
+  await neo4jClient.runQuery(
+    `MATCH (b:Booking {booking_id: $booking_id})
+     MATCH (c:Customer {customer_profile_id: $customer_profile_id})
+     CREATE (c)-[:MADE]->(b)`,
+    { booking_id, customer_profile_id }
+  );
+  
+  // 選擇一個可用的員工來提供服務
+  // 這裡簡單地選擇第一個可用的員工，實際應用中可能需要更複雜的分配邏輯
+  if (finalAvailableStaffIds.length > 0) {
+    const assigned_staff_id = finalAvailableStaffIds[0];
+    
+    // 建立預約與員工的關係
+    await neo4jClient.runQuery(
+      `MATCH (b:Booking {booking_id: $booking_id})
+       MATCH (s:Staff {staff_member_id: $assigned_staff_id})
+       CREATE (s)-[:PROVIDES_SERVICE_FOR]->(b)`,
+      { booking_id, assigned_staff_id }
+    );
+  }
   
   return { booking_id };
 };

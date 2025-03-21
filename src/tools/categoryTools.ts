@@ -51,22 +51,34 @@ export const createCategoryImpl = async (params: CreateCategoryParams): Promise<
   
   const bookable_item_category_id = uuidv4();
   
-  await neo4jClient.runQuery(
-    `CREATE (c:Category {
-      bookable_item_category_id: $bookable_item_category_id,
-      business_id: $business_id,
-      category_name: $category_name,
-      category_description: $category_description,
-      created_at: datetime(),
-      updated_at: datetime()
-    }) RETURN c`,
-    { 
-      bookable_item_category_id, 
-      business_id, 
-      category_name, 
-      category_description
-    }
-  );
+  // 使用事務確保操作的原子性
+  await neo4jClient.runInTransaction(async (tx) => {
+    // 創建類別節點
+    await tx.run(
+      `CREATE (c:Category {
+        bookable_item_category_id: $bookable_item_category_id,
+        business_id: $business_id,
+        category_name: $category_name,
+        category_description: $category_description,
+        created_at: datetime(),
+        updated_at: datetime()
+      }) RETURN c`,
+      { 
+        bookable_item_category_id, 
+        business_id, 
+        category_name, 
+        category_description
+      }
+    );
+    
+    // 建立類別與商家的關係
+    await tx.run(
+      `MATCH (b:Business {business_id: $business_id})
+       MATCH (c:Category {bookable_item_category_id: $bookable_item_category_id})
+       CREATE (c)-[:BELONGS_TO]->(b)`,
+      { business_id, bookable_item_category_id }
+    );
+  });
   
   return { bookable_item_category_id };
 };

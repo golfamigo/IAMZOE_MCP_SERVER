@@ -143,6 +143,7 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
       toolName: string;
       description?: string;
       implementationName?: string;
+      schemaContent?: string;
     }> = [];
     
     // 檢查每個工具檔案
@@ -187,6 +188,16 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
           }
         }
         
+        // 尋找參數定義 Schema
+        const schemaMatches = content.matchAll(/const\s+(\w+Schema)\s*=\s*{([\s\S]*?)};/g);
+        const schemas: Map<string, string> = new Map();
+        
+        for (const match of Array.from(schemaMatches)) {
+          const schemaName = match[1];
+          const schemaContent = match[2];
+          schemas.set(schemaName, schemaContent);
+        }
+        
         // 收集所有找到的工具函數
         for (const match of functionMatches) {
           const toolName = match[1];
@@ -209,10 +220,15 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
             }
           }
           
+          // 尋找對應的 Schema
+          const schemaName = `${toolName.replace(/Impl$/, '')}Schema`;
+          const schemaContent = schemas.get(schemaName);
+          
           toolDefinitions.push({
             fileName: file.name.replace('.ts', ''),
             toolName,
-            description: descriptions.get(toolName) || `${toolName} 工具`
+            description: descriptions.get(toolName) || `${toolName} 工具`,
+            schemaContent
           });
         }
         
@@ -226,11 +242,16 @@ export async function generateToolDefinitionsTemplate(outputFile: string, toolsD
           const implName = `${varName}Impl`;
           const implMatch = functionMatches.find(m => m[1] === implName);
           
+          // 尋找對應的 Schema
+          const schemaName = `${varName}Schema`;
+          const schemaContent = schemas.get(schemaName);
+          
           toolDefinitions.push({
             fileName: file.name.replace('.ts', ''),
             toolName: varName,
             description: description || descriptions.get(varName) || `${varName} 工具`,
-            implementationName: implMatch ? implName : undefined
+            implementationName: implMatch ? implName : undefined,
+            schemaContent
           });
         }
       }
@@ -274,10 +295,30 @@ import { ToolDefinition } from '../types/tool';\n\n`;
         fileContent += `    '${tool.description}',\n`;
         fileContent += `    {\n`;
         fileContent += `      type: 'object',\n`;
-        fileContent += `      properties: {\n`;
-        fileContent += `        // TODO: 添加參數定義\n`;
-        fileContent += `      },\n`;
-        fileContent += `      required: [/* TODO: 添加必要參數 */]\n`;
+        
+        // 如果有找到 Schema 內容，則使用它
+        if (tool.schemaContent) {
+          // 提取 properties
+          const propertiesMatch = tool.schemaContent.match(/properties\s*:\s*{([\s\S]*?)},/);
+          if (propertiesMatch) {
+            fileContent += `      properties: {${propertiesMatch[1]}},\n`;
+          } else {
+            fileContent += `      properties: {},\n`;
+          }
+          
+          // 提取 required
+          const requiredMatch = tool.schemaContent.match(/required\s*:\s*(\[[^\]]*\])/);
+          if (requiredMatch) {
+            fileContent += `      required: ${requiredMatch[1]}\n`;
+          } else {
+            fileContent += `      required: []\n`;
+          }
+        } else {
+          // 沒有找到 Schema，使用預設值
+          fileContent += `      properties: {},\n`;
+          fileContent += `      required: []\n`;
+        }
+        
         fileContent += `    },\n`;
         fileContent += `    ${tool.implementationName}\n`;
         fileContent += `  ),\n\n`;
@@ -293,14 +334,6 @@ import { ToolDefinition } from '../types/tool';\n\n`;
     await fs.writeFile(outputFile, fileContent, 'utf-8');
     console.error(`已生成工具定義範本至: ${outputFile}`);
     console.error(`共找到 ${toolDefinitions.length} 個工具函數`);
-
-    // 提示信息
-    if (toolDefinitions.length > 0) {
-      console.error('\n請在生成的檔案中完善以下內容:');
-      console.error('1. 每個工具的詳細描述');
-      console.error('2. 輸入參數的定義 (properties)');
-      console.error('3. 必要參數列表 (required)');
-    }
   } catch (error) {
     console.error('生成工具定義範本時發生錯誤:', error);
     throw error;

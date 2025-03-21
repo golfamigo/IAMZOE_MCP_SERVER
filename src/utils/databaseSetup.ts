@@ -31,6 +31,7 @@ export async function setupDatabaseConstraints(): Promise<void> {
 
     // 重要索引 - 索引語法保持不變
     const indexes = [
+      // 現有索引
       'CREATE INDEX IF NOT EXISTS FOR (b:Booking) ON (b.business_id, b.booking_status_code)',
       'CREATE INDEX IF NOT EXISTS FOR (b:Booking) ON (b.business_id, b.booking_start_datetime)',
       'CREATE INDEX IF NOT EXISTS FOR (b:BookableItem) ON (b.business_id, b.bookable_item_type_code)',
@@ -43,7 +44,29 @@ export async function setupDatabaseConstraints(): Promise<void> {
       'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.email)',
       'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.user_name)',
       'CREATE INDEX IF NOT EXISTS FOR (sa:StaffAvailability) ON (sa.day_of_week)',
-      'CREATE INDEX IF NOT EXISTS FOR (sa:StaffAvailability) ON (sa.staff_member_id)'
+      'CREATE INDEX IF NOT EXISTS FOR (sa:StaffAvailability) ON (sa.staff_member_id)',
+      
+      // 節點屬性索引（針對沒有唯一性約束的屬性）
+      'CREATE INDEX IF NOT EXISTS FOR (bi:BookableItem) ON (bi.bookable_item_name)',
+      'CREATE INDEX IF NOT EXISTS FOR (bi:BookableItem) ON (bi.business_id, bi.is_active)',
+      'CREATE INDEX IF NOT EXISTS FOR (b:Booking) ON (b.bookable_item_id, b.booking_status_code)',
+      'CREATE INDEX IF NOT EXISTS FOR (s:Staff) ON (s.staff_member_email)',
+      'CREATE INDEX IF NOT EXISTS FOR (s:Staff) ON (s.staff_member_name)',
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer) ON (c.business_id, c.gender)',
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer) ON (c.customer_birthdate)',
+      'CREATE INDEX IF NOT EXISTS FOR (m:MembershipLevel) ON (m.business_id)',
+      
+      // 複合節點屬性索引（優化查詢）
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer) ON (c.business_id, c.gender, c.customer_birthdate)',
+      'CREATE INDEX IF NOT EXISTS FOR (b:Booking) ON (b.business_id, b.booking_status_code, b.booking_start_datetime)',
+      'CREATE INDEX IF NOT EXISTS FOR (sa:StaffAvailability) ON (sa.staff_member_id, sa.day_of_week)',
+      
+      // 節點標籤索引（基礎優化）
+      'CREATE INDEX IF NOT EXISTS FOR (b:Business)',
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer)',
+      'CREATE INDEX IF NOT EXISTS FOR (s:Staff)',
+      'CREATE INDEX IF NOT EXISTS FOR (bi:BookableItem)',
+      'CREATE INDEX IF NOT EXISTS FOR (ml:MembershipLevel)'
     ];
 
     for (const index of indexes) {
@@ -56,10 +79,21 @@ export async function setupDatabaseConstraints(): Promise<void> {
       const relationshipIndexes = [
         'CREATE INDEX IF NOT EXISTS FOR ()-[r:MADE]-() ON (r.created_at)',
         'CREATE INDEX IF NOT EXISTS FOR ()-[r:BOOKS]-() ON (r.booking_date)',
-        'CREATE INDEX IF NOT EXISTS FOR ()-[r:ASSIGNED_TO]-() ON (r.assigned_date)'
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:ASSIGNED_TO]-() ON (r.assigned_date)',
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:HAS_MEMBERSHIP]-() ON (r.membership_expiry_date)'
       ];
 
       for (const index of relationshipIndexes) {
+        await neo4jClient.runQuery(index);
+      }
+      
+      // 全文索引（適用於文本搜索）
+      const fullTextIndexes = [
+        'CREATE FULLTEXT INDEX service_name IF NOT EXISTS FOR (bi:BookableItem) ON EACH [bi.bookable_item_name, bi.bookable_item_description]',
+        'CREATE FULLTEXT INDEX customer_search IF NOT EXISTS FOR (c:Customer) ON EACH [c.customer_name, c.customer_email]'
+      ];
+      
+      for (const index of fullTextIndexes) {
         await neo4jClient.runQuery(index);
       }
     } catch (error) {

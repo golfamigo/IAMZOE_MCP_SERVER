@@ -125,48 +125,60 @@ export const createServiceImpl = async (params: CreateServiceParams): Promise<Cr
   
   const bookable_item_id = uuidv4();
   
-  // 創建服務節點
-  await neo4jClient.runQuery(
-    `CREATE (bi:BookableItem {
-      bookable_item_id: $bookable_item_id,
-      business_id: $business_id,
-      bookable_item_type_code: $bookable_item_type_code,
-      bookable_item_name: $bookable_item_name,
-      bookable_item_description: $bookable_item_description,
-      bookable_item_duration: $bookable_item_duration,
-      bookable_item_price: $bookable_item_price,
-      bookable_item_max_capacity: $bookable_item_max_capacity,
-      is_active: true,
-      created_at: datetime(),
-      updated_at: datetime()
-    }) RETURN bi`,
-    { 
-      bookable_item_id, 
-      business_id, 
-      bookable_item_type_code, 
-      bookable_item_name,
-      bookable_item_description,
-      bookable_item_duration,
-      bookable_item_price,
-      bookable_item_max_capacity
+  // 使用事務確保操作的原子性
+  await neo4jClient.runInTransaction(async (tx) => {
+    // 創建服務節點
+    await tx.run(
+      `CREATE (bi:BookableItem {
+        bookable_item_id: $bookable_item_id,
+        business_id: $business_id,
+        bookable_item_type_code: $bookable_item_type_code,
+        bookable_item_name: $bookable_item_name,
+        bookable_item_description: $bookable_item_description,
+        bookable_item_duration: $bookable_item_duration,
+        bookable_item_price: $bookable_item_price,
+        bookable_item_max_capacity: $bookable_item_max_capacity,
+        is_active: true,
+        created_at: datetime(),
+        updated_at: datetime()
+      }) RETURN bi`,
+      { 
+        bookable_item_id, 
+        business_id, 
+        bookable_item_type_code, 
+        bookable_item_name,
+        bookable_item_description,
+        bookable_item_duration,
+        bookable_item_price,
+        bookable_item_max_capacity
+      }
+    );
+    
+    // 建立服務與商家的關係
+    await tx.run(
+      `MATCH (b:Business {business_id: $business_id})
+       MATCH (bi:BookableItem {bookable_item_id: $bookable_item_id})
+       CREATE (bi)-[:BELONGS_TO]->(b)`,
+      { business_id, bookable_item_id }
+    );
+    
+    // 如果提供了 category_id，建立與類別的關係
+    if (category_id) {
+      try {
+        await tx.run(
+          `MATCH (bi:BookableItem {bookable_item_id: $bookable_item_id})
+           MATCH (cat:Category {bookable_item_category_id: $category_id})
+           WHERE bi.business_id = cat.business_id
+           CREATE (bi)-[:HAS_CATEGORY]->(cat)`,
+          { bookable_item_id, category_id }
+        );
+      } catch (error) {
+        console.error('建立與類別的關係時出錯:', error);
+        // 在事務中，如果這裡出錯，整個事務會回滾
+        throw error;
+      }
     }
-  );
-  
-  // 如果提供了 category_id，建立與類別的關係
-  if (category_id) {
-    try {
-      await neo4jClient.runQuery(
-        `MATCH (bi:BookableItem {bookable_item_id: $bookable_item_id})
-         MATCH (cat:Category {bookable_item_category_id: $category_id})
-         WHERE bi.business_id = cat.business_id
-         CREATE (bi)-[:HAS_CATEGORY]->(cat)`,
-        { bookable_item_id, category_id }
-      );
-    } catch (error) {
-      console.error('建立與類別的關係時出錯:', error);
-      // 不要因為建立關係出錯而導致整個創建服務的過程失敗
-    }
-  }
+  });
   
   return { bookable_item_id };
 };

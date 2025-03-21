@@ -1,6 +1,6 @@
 /**
  * 自動生成的工具定義檔案
- * 生成時間: 2025-03-21T01:37:23.804Z
+ * 生成時間: 2025-03-21T02:52:44.083Z
  * 
  * 此檔案由 generateToolDefs.ts 腳本自動生成
  * 請手動檢查並確保每個工具定義正確
@@ -15,6 +15,7 @@ import { getBookings } from './bookingTools';
 import { createBooking } from './bookingTools';
 import { cancelBooking } from './bookingTools';
 import { getBusinessHours } from './businessTools';
+import { createBusiness } from './businessTools';
 import { createCategory } from './categoryTools';
 import { createCustomer } from './customerTools';
 import { getCustomer } from './customerTools';
@@ -58,6 +59,9 @@ export const generatedToolDefinitions: ToolDefinition[] = [
 
   // businessTools 工具
   getBusinessHours,
+
+  // businessTools 工具
+  createBusiness,
 
   // categoryTools 工具
   createCategory,

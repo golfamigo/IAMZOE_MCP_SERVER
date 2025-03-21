@@ -164,6 +164,25 @@ export const createSubscriptionImpl = async (params: CreateSubscriptionParams): 
     { subscription_id, customer_profile_id, bookable_item_id }
   );
   
+  // 獲取商家ID並建立訂閱與商家的關係
+  const businessResult = await neo4jClient.runQuery(
+    `MATCH (c:Customer {customer_profile_id: $customer_profile_id})
+     RETURN c.business_id as business_id`,
+    { customer_profile_id }
+  );
+  
+  if (businessResult.records.length > 0) {
+    const business_id = businessResult.records[0].get('business_id');
+    
+    // 建立訂閱與商家的關係
+    await neo4jClient.runQuery(
+      `MATCH (s:Subscription {subscription_id: $subscription_id})
+       MATCH (b:Business {business_id: $business_id})
+       CREATE (s)-[:BELONGS_TO]->(b)`,
+      { subscription_id, business_id }
+    );
+  }
+  
   return { subscription_id };
 };
 

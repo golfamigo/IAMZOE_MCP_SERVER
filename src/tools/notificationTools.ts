@@ -12,6 +12,7 @@ export interface Notification {
   notification_id: string;
   notification_type: string;
   notification_content: string;
+  business_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +20,7 @@ export interface Notification {
 export interface CreateNotificationParams {
   notification_type: string;
   notification_content: string;
+  business_id?: string;
 }
 
 export interface CreateNotificationResult {
@@ -36,6 +38,10 @@ const createNotificationSchema = {
     notification_content: { 
       type: 'string', 
       description: '通知內容' 
+    },
+    business_id: { 
+      type: 'string', 
+      description: '商家 ID（可選）' 
     }
   },
   required: ['notification_type', 'notification_content']
@@ -50,7 +56,7 @@ export const createNotificationImpl = async (params: CreateNotificationParams): 
   // 驗證輸入參數
   validateParams(params, createNotificationSchema);
   
-  const { notification_type, notification_content } = params;
+  const { notification_type, notification_content, business_id } = params;
   
   const notification_id = uuidv4();
   
@@ -59,15 +65,27 @@ export const createNotificationImpl = async (params: CreateNotificationParams): 
       notification_id: $notification_id,
       notification_type: $notification_type,
       notification_content: $notification_content,
+      business_id: $business_id,
       created_at: datetime(),
       updated_at: datetime()
     }) RETURN n`,
     { 
       notification_id, 
       notification_type, 
-      notification_content
+      notification_content,
+      business_id: business_id || null
     }
   );
+  
+  // 如果提供了商家ID，建立通知與商家的關係
+  if (business_id) {
+    await neo4jClient.runQuery(
+      `MATCH (n:Notification {notification_id: $notification_id})
+       MATCH (b:Business {business_id: $business_id})
+       CREATE (n)-[:BELONGS_TO]->(b)`,
+      { notification_id, business_id }
+    );
+  }
   
   return { notification_id };
 };

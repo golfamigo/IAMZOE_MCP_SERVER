@@ -38,6 +38,35 @@ class Neo4jClient {
       await session.close();
     }
   }
+
+  /**
+   * 獲取Neo4j驅動實例
+   * @returns Neo4j驅動實例
+   */
+  getDriver(): Driver {
+    if (!this.driver) {
+      throw new Error('Neo4j 資料庫未連接');
+    }
+    return this.driver;
+  }
+
+  /**
+   * 在事務中執行多個查詢
+   * @param callback 回調函數，接收事務對象並執行查詢
+   * @returns 回調函數的返回值
+   */
+  async runInTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
+    if (!this.driver) {
+      throw new Error('Neo4j 資料庫未連接');
+    }
+
+    const session: Session = this.driver.session();
+    try {
+      return await session.executeWrite(callback);
+    } finally {
+      await session.close();
+    }
+  }
 }
 
 export const neo4jClient = new Neo4jClient();

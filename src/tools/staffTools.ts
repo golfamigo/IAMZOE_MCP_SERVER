@@ -184,27 +184,39 @@ export const createStaffImpl = async (params: CreateStaffParams): Promise<Create
   // 創建唯一 ID
   const staff_member_id = uuidv4();
   
-  await neo4jClient.runQuery(
-    `CREATE (s:Staff {
-      staff_member_id: $staff_member_id,
-      business_id: $business_id,
-      staff_member_name: $staff_member_name,
-      staff_member_email: $staff_member_email,
-      staff_member_phone: $staff_member_phone,
-      staff_member_hire_date: $staff_member_hire_date,
-      staff_member_is_active: true,
-      created_at: datetime(),
-      updated_at: datetime()
-    }) RETURN s`,
-    { 
-      staff_member_id, 
-      business_id, 
-      staff_member_name, 
-      staff_member_email,
-      staff_member_phone: staff_member_phone || null,
-      staff_member_hire_date: staff_member_hire_date || null
-    }
-  );
+  // 使用事務確保操作的原子性
+  await neo4jClient.runInTransaction(async (tx) => {
+    // 創建員工節點
+    await tx.run(
+      `CREATE (s:Staff {
+        staff_member_id: $staff_member_id,
+        business_id: $business_id,
+        staff_member_name: $staff_member_name,
+        staff_member_email: $staff_member_email,
+        staff_member_phone: $staff_member_phone,
+        staff_member_hire_date: $staff_member_hire_date,
+        staff_member_is_active: true,
+        created_at: datetime(),
+        updated_at: datetime()
+      }) RETURN s`,
+      { 
+        staff_member_id, 
+        business_id, 
+        staff_member_name, 
+        staff_member_email,
+        staff_member_phone: staff_member_phone || null,
+        staff_member_hire_date: staff_member_hire_date || null
+      }
+    );
+    
+    // 建立員工與商家的關係
+    await tx.run(
+      `MATCH (b:Business {business_id: $business_id})
+       MATCH (s:Staff {staff_member_id: $staff_member_id})
+       CREATE (s)-[:BELONGS_TO]->(b)`,
+      { business_id, staff_member_id }
+    );
+  });
   
   return { staff_member_id };
 };
@@ -287,32 +299,36 @@ export const addStaffAvailabilityImpl = async (params: AddStaffAvailabilityParam
   // 創建唯一 ID
   const staff_availability_id = uuidv4();
   
-  await neo4jClient.runQuery(
-    `CREATE (sa:StaffAvailability {
-      staff_availability_id: $staff_availability_id,
-      staff_member_id: $staff_member_id,
-      day_of_week: $day_of_week,
-      start_time: $start_time,
-      end_time: $end_time,
-      created_at: datetime(),
-      updated_at: datetime()
-    }) RETURN sa`,
-    { 
-      staff_availability_id, 
-      staff_member_id, 
-      day_of_week, 
-      start_time, 
-      end_time 
-    }
-  );
-  
-  // 建立員工與可用性的關係
-  await neo4jClient.runQuery(
-    `MATCH (s:Staff {staff_member_id: $staff_member_id})
-     MATCH (sa:StaffAvailability {staff_availability_id: $staff_availability_id})
-     CREATE (s)-[:HAS_AVAILABILITY]->(sa)`,
-    { staff_member_id, staff_availability_id }
-  );
+  // 使用事務確保操作的原子性
+  await neo4jClient.runInTransaction(async (tx) => {
+    // 創建可用性節點
+    await tx.run(
+      `CREATE (sa:StaffAvailability {
+        staff_availability_id: $staff_availability_id,
+        staff_member_id: $staff_member_id,
+        day_of_week: $day_of_week,
+        start_time: $start_time,
+        end_time: $end_time,
+        created_at: datetime(),
+        updated_at: datetime()
+      }) RETURN sa`,
+      { 
+        staff_availability_id, 
+        staff_member_id, 
+        day_of_week, 
+        start_time, 
+        end_time 
+      }
+    );
+    
+    // 建立員工與可用性的關係
+    await tx.run(
+      `MATCH (s:Staff {staff_member_id: $staff_member_id})
+       MATCH (sa:StaffAvailability {staff_availability_id: $staff_availability_id})
+       CREATE (s)-[:HAS_AVAILABILITY]->(sa)`,
+      { staff_member_id, staff_availability_id }
+    );
+  });
   
   return { staff_availability_id };
 };

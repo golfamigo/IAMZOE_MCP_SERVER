@@ -148,6 +148,14 @@ export const createCustomerImpl = async (params: CreateCustomerParams): Promise<
     }
   );
   
+  // 建立顧客與商家的關係
+  await neo4jClient.runQuery(
+    `MATCH (b:Business {business_id: $business_id})
+     MATCH (c:Customer {customer_profile_id: $customer_profile_id})
+     CREATE (c)-[:BELONGS_TO]->(b)`,
+    { business_id, customer_profile_id }
+  );
+  
   return { customer_profile_id };
 };
 
