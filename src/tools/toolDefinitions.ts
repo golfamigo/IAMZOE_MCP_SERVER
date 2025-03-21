@@ -39,6 +39,9 @@ export async function initializeToolDefinitions(): Promise<ToolDefinition[]> {
   }
 }
 
+// 用於外部存取的工具定義陣列
+export const toolDefinitions: ToolDefinition[] = [];
+
 // 定義「列出工具」的工具
 // 為工具列表工具手動建立標準化定義
 export const listToolsTool = createToolDefinition(
@@ -52,16 +55,13 @@ export const listToolsTool = createToolDefinition(
   async () => {
     // 返回所有工具名稱和描述
     return {
-      tools: _toolDefinitions.map(tool => ({
+      tools: toolDefinitions.map(tool => ({
         name: tool.name,
         description: tool.description
       }))
     };
   }
 );
-
-// 用於外部存取的工具定義陣列
-export const toolDefinitions: ToolDefinition[] = [];
 
 /**
  * 初始化並填充工具定義陣列
