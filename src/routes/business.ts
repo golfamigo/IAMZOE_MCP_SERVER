@@ -72,6 +72,13 @@ router.post('/business', authenticateApiKey, async (req: Request, res: Response)
 
   try {
     const business_id = uuidv4();
+    
+    // 修改查詢語句，避免使用三元運算符
+    let locationQuery = 'null';
+    if (businessData.business_location) {
+      locationQuery = `point({latitude: ${businessData.business_location.latitude}, longitude: ${businessData.business_location.longitude}})`;
+    }
+    
     const createResult = await neo4jClient.runQuery(
       `CREATE (b:Business {
         business_id: $business_id,
@@ -80,7 +87,7 @@ router.post('/business', authenticateApiKey, async (req: Request, res: Response)
         business_contact_email: $business_contact_email,
         business_contact_phone: $business_contact_phone,
         business_address: $business_address,
-        business_location: $business_location ? point({latitude: $business_location.latitude, longitude: $business_location.longitude}) : null,
+        business_location: ${locationQuery},
         line_destination: $line_destination,
         created_at: datetime(),
         updated_at: datetime()
@@ -93,7 +100,6 @@ router.post('/business', authenticateApiKey, async (req: Request, res: Response)
         business_contact_email: businessData.business_contact_email || null,
         business_contact_phone: businessData.business_contact_phone || null,
         business_address: businessData.business_address || null,
-        business_location: businessData.business_location || null,
         line_destination: businessData.line_destination || null
       }
     );
@@ -213,8 +219,12 @@ router.put('/business/:business_id', authenticateApiKey, async (req: Request, re
       params.business_address = updateData.business_address;
     }
     if (updateData.business_location !== undefined) {
-      updateQuery += ', b.business_location = $business_location ? point({latitude: $business_location.latitude, longitude: $business_location.longitude}) : null';
-      params.business_location = updateData.business_location;
+      // 修改更新位置的處理方式
+      if (updateData.business_location === null) {
+        updateQuery += ', b.business_location = null';
+      } else {
+        updateQuery += `, b.business_location = point({latitude: ${updateData.business_location.latitude}, longitude: ${updateData.business_location.longitude}})`;
+      }
     }
     if (updateData.line_destination !== undefined) {
       updateQuery += ', b.line_destination = $line_destination';

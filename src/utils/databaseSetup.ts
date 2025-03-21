@@ -7,7 +7,7 @@ import { neo4jClient } from '../db';
  */
 export async function setupDatabaseConstraints(): Promise<void> {
   try {
-    console.log('正在建立數據庫索引和約束...');
+    console.error('正在建立數據庫索引和約束...');
 
     // 唯一性約束 - 使用新語法 FOR 和 REQUIRE
     const uniqueConstraints = [
@@ -49,12 +49,13 @@ export async function setupDatabaseConstraints(): Promise<void> {
       await neo4jClient.runQuery(index);
     }
 
-    // 關係索引可能需要特殊處理，取決於Neo4j版本
+    // 關係索引 - 使用社區版兼容的語法
     try {
+      // 使用替代語法，為關係屬性創建索引
       const relationshipIndexes = [
-        'CREATE INDEX IF NOT EXISTS FOR ()-[r:MADE]->() ON (r)',
-        'CREATE INDEX IF NOT EXISTS FOR ()-[r:BOOKS]->() ON (r)',
-        'CREATE INDEX IF NOT EXISTS FOR ()-[r:ASSIGNED_TO]->() ON (r)'
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:MADE]-() ON (r.created_at)',
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:BOOKS]-() ON (r.booking_date)',
+        'CREATE INDEX IF NOT EXISTS FOR ()-[r:ASSIGNED_TO]-() ON (r.assigned_date)'
       ];
 
       for (const index of relationshipIndexes) {
@@ -62,10 +63,11 @@ export async function setupDatabaseConstraints(): Promise<void> {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn('關係索引創建失敗，可能需要Neo4j Enterprise版本或不同的語法:', errorMessage);
+      console.error('關係索引創建失敗，可能需要Neo4j Enterprise版本或不同的語法:', errorMessage);
+      console.error('這不會影響系統的基本功能，但可能會影響某些查詢的性能');
     }
 
-    console.log('數據庫索引和約束建立完成');
+    console.error('數據庫索引和約束建立完成');
   } catch (error) {
     console.error('建立數據庫索引和約束時發生錯誤:', error);
     throw error;
@@ -96,9 +98,9 @@ export async function initializeDatabase(): Promise<void> {
     }
     
     await setupDatabaseConstraints();
-    console.log('數據庫初始化成功');
+    console.error('數據庫初始化成功');
   } catch (error) {
     console.error('初始化數據庫時發生錯誤:', error);
-    console.warn('應用將繼續啟動，但某些數據庫功能可能不可用');
+    console.error('應用將繼續啟動，但某些數據庫功能可能不可用');
   }
 }

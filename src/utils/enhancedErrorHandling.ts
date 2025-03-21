@@ -122,7 +122,7 @@ export function checkRequiredParams(params: any, requiredParams: string[], toolN
  * @param code 錯誤代碼，預設為 InternalError
  */
 export function throwBusinessError(message: string, code: ErrorCode = ErrorCode.InternalError): never {
-  console.warn(`業務邏輯錯誤: ${message}`);
+  console.error(`業務邏輯錯誤: ${message}`);
   throw new McpError(code, message);
 }
 
@@ -134,7 +134,7 @@ export function throwBusinessError(message: string, code: ErrorCode = ErrorCode.
  */
 export function throwResourceNotFound(id: string, resourceType: string): never {
   const message = `找不到${resourceType}: ${id}`;
-  console.warn(message);
+  console.error(message);
   throw new McpError(ErrorCode.InvalidParams, message);
 }
 
@@ -146,6 +146,6 @@ export function throwResourceNotFound(id: string, resourceType: string): never {
  */
 export function throwParameterError(message: string, paramName?: string): never {
   const fullMessage = paramName ? `參數 ${paramName} 錯誤: ${message}` : message;
-  console.warn(`參數錯誤: ${fullMessage}`);
+  console.error(`參數錯誤: ${fullMessage}`);
   throw new McpError(ErrorCode.InvalidParams, fullMessage);
 }

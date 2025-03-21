@@ -14,7 +14,7 @@ import { ToolDefinition } from '../types/tool';
  */
 export async function scanToolDefinitions(toolsDir: string): Promise<ToolDefinition[]> {
   try {
-    console.log(`開始掃描工具目錄: ${toolsDir}`);
+    console.error(`開始掃描工具目錄: ${toolsDir}`);
     
     // 讀取工具目錄中的所有檔案
     const files = await fs.readdir(toolsDir, { withFileTypes: true });
@@ -32,7 +32,7 @@ export async function scanToolDefinitions(toolsDir: string): Promise<ToolDefinit
         const toolFilePath = path.join(toolsDir, file.name);
         
         try {
-          console.log(`嘗試載入工具檔案: ${file.name}`);
+          console.error(`嘗試載入工具檔案: ${file.name}`);
           
           // 嘗試匯入工具檔案
           const toolModule = await import(toolFilePath);
@@ -49,10 +49,10 @@ export async function scanToolDefinitions(toolsDir: string): Promise<ToolDefinit
           ) as ToolDefinition[];
           
           if (potentialTools.length > 0) {
-            console.log(`在 ${file.name} 中找到 ${potentialTools.length} 個工具定義`);
+            console.error(`在 ${file.name} 中找到 ${potentialTools.length} 個工具定義`);
             toolDefinitions.push(...potentialTools);
           } else {
-            console.warn(`警告: 在 ${file.name} 中沒有找到符合格式的工具定義`);
+            console.error(`警告: 在 ${file.name} 中沒有找到符合格式的工具定義`);
           }
         } catch (error) {
           console.error(`無法載入工具檔案 ${file.name}:`, error);
@@ -60,7 +60,7 @@ export async function scanToolDefinitions(toolsDir: string): Promise<ToolDefinit
       }
     }
     
-    console.log(`掃描完成，共發現 ${toolDefinitions.length} 個工具定義`);
+    console.error(`掃描完成，共發現 ${toolDefinitions.length} 個工具定義`);
     return toolDefinitions;
   } catch (error) {
     console.error('掃描工具定義時發生錯誤:', error);
@@ -77,7 +77,7 @@ export async function scanToolDefinitions(toolsDir: string): Promise<ToolDefinit
  */
 export async function checkToolCoverage(toolsDir: string, definedTools: ToolDefinition[]): Promise<void> {
   try {
-    console.log('開始檢查工具覆蓋率...');
+    console.error('開始檢查工具覆蓋率...');
     
     // 取得工具檔案列表
     const files = await fs.readdir(toolsDir, { withFileTypes: true });
@@ -108,13 +108,13 @@ export async function checkToolCoverage(toolsDir: string, definedTools: ToolDefi
           
           // 檢查該函數名稱是否在已定義的工具列表中
           if (!definedToolNames.has(possibleToolName)) {
-            console.warn(`警告: 在 ${file.name} 中發現可能未定義的工具實作: ${possibleToolName}`);
+            console.error(`警告: 在 ${file.name} 中發現可能未定義的工具實作: ${possibleToolName}`);
           }
         }
       }
     }
     
-    console.log('工具覆蓋率檢查完成');
+    console.error('工具覆蓋率檢查完成');
   } catch (error) {
     console.error('檢查工具覆蓋率時發生錯誤:', error);
   }
@@ -129,7 +129,7 @@ export async function checkToolCoverage(toolsDir: string, definedTools: ToolDefi
  */
 export async function generateToolDefinitionsTemplate(outputFile: string, toolsDir: string): Promise<void> {
   try {
-    console.log(`開始掃描目錄: ${toolsDir} 尋找工具實作...`);
+    console.error(`開始掃描目錄: ${toolsDir} 尋找工具實作...`);
     
     // 取得工具檔案列表
     const files = await fs.readdir(toolsDir, { withFileTypes: true });
@@ -291,15 +291,15 @@ import { ToolDefinition } from '../types/tool';\n\n`;
     
     // 寫入檔案
     await fs.writeFile(outputFile, fileContent, 'utf-8');
-    console.log(`已生成工具定義範本至: ${outputFile}`);
-    console.log(`共找到 ${toolDefinitions.length} 個工具函數`);
+    console.error(`已生成工具定義範本至: ${outputFile}`);
+    console.error(`共找到 ${toolDefinitions.length} 個工具函數`);
 
     // 提示信息
     if (toolDefinitions.length > 0) {
-      console.log('\n請在生成的檔案中完善以下內容:');
-      console.log('1. 每個工具的詳細描述');
-      console.log('2. 輸入參數的定義 (properties)');
-      console.log('3. 必要參數列表 (required)');
+      console.error('\n請在生成的檔案中完善以下內容:');
+      console.error('1. 每個工具的詳細描述');
+      console.error('2. 輸入參數的定義 (properties)');
+      console.error('3. 必要參數列表 (required)');
     }
   } catch (error) {
     console.error('生成工具定義範本時發生錯誤:', error);

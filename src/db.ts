@@ -11,7 +11,7 @@ class Neo4jClient {
 
     try {
       await this.driver.verifyConnectivity();
-      console.log('已成功連接到 Neo4j 資料庫');
+      console.error('已成功連接到 Neo4j 資料庫');
     } catch (error) {
       console.error('Neo4j 資料庫連接失敗:', error);
       throw error;
@@ -21,7 +21,7 @@ class Neo4jClient {
   async close(): Promise<void> {
     if (this.driver) {
       await this.driver.close();
-      console.log('已關閉 Neo4j 資料庫連線');
+      console.error('已關閉 Neo4j 資料庫連線');
     }
   }
 

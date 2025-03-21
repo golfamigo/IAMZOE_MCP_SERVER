@@ -20,7 +20,7 @@ let _toolDefinitions: ToolDefinition[] = [];
  */
 export async function initializeToolDefinitions(): Promise<ToolDefinition[]> {
   try {
-    console.log('開始初始化工具定義...');
+    console.error('開始初始化工具定義...');
     
     // 掃描工具目錄，收集所有工具定義
     const tools = await scanToolDefinitions(TOOLS_DIR);
@@ -31,7 +31,7 @@ export async function initializeToolDefinitions(): Promise<ToolDefinition[]> {
     // 更新工具定義陣列
     _toolDefinitions = tools;
     
-    console.log(`成功初始化 ${_toolDefinitions.length} 個工具定義`);
+    console.error(`成功初始化 ${_toolDefinitions.length} 個工具定義`);
     return _toolDefinitions;
   } catch (error) {
     console.error('初始化工具定義時發生錯誤:', error);
@@ -85,7 +85,7 @@ export async function loadToolDefinitions(): Promise<ToolDefinition[]> {
   });
   
   // 添加手動生成的工具定義
-  console.log(`添加 ${generatedToolDefinitions.length} 個手動生成的工具定義`);
+  console.error(`添加 ${generatedToolDefinitions.length} 個手動生成的工具定義`);
   const existingToolNames = new Set(toolDefinitions.map(tool => tool.name));
   
   generatedToolDefinitions.forEach(tool => {
@@ -96,6 +96,6 @@ export async function loadToolDefinitions(): Promise<ToolDefinition[]> {
     }
   });
   
-  console.log(`工具定義載入完成，共 ${toolDefinitions.length} 個工具可用`);
+  console.error(`工具定義載入完成，共 ${toolDefinitions.length} 個工具可用`);
   return toolDefinitions;
 }

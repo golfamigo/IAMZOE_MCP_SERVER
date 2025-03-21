@@ -8,9 +8,12 @@
     "generate-docs": "ts-node src/scripts/generateToolDocs.ts",
     "prebuild": "npm run generate-tools && npm run generate-docs",
     "build": "tsc",
-    "prestart": "npm run build",
     "start": "node dist/index.js",
+    "start:api": "cross-env START_MODE=api node dist/index.js",
+    "start:mcp": "cross-env START_MODE=mcp node dist/index.js",
     "dev": "ts-node src/index.ts",
+    "dev:api": "cross-env START_MODE=api ts-node src/index.ts",
+    "dev:mcp": "cross-env START_MODE=mcp ts-node src/index.ts",
     "test": "jest"
   },
   "keywords": [
@@ -33,6 +36,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.25",
     "@types/uuid": "^9.0.8",
+    "cross-env": "^7.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.2"
   }

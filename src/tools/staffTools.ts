@@ -64,6 +64,10 @@ export interface AssignServiceToStaffParams {
   bookable_item_id: string;
 }
 
+export interface AssignServiceToStaffResult {
+  success: boolean;
+}
+
 // 工具輸入模式定義
 const createStaffSchema = {
   type: 'object',
@@ -317,7 +321,7 @@ export const addStaffAvailabilityImpl = async (params: AddStaffAvailabilityParam
  * 為員工指定可提供的服務
  * @param params 服務指派參數
  */
-export const assignServiceToStaffImpl = async (params: AssignServiceToStaffParams): Promise<void> => {
+export const assignServiceToStaffImpl = async (params: AssignServiceToStaffParams): Promise<AssignServiceToStaffResult> => {
   // 驗證輸入參數
   validateParams(params, assignServiceToStaffSchema);
   const { staff_member_id, bookable_item_id } = params;
@@ -344,7 +348,7 @@ export const assignServiceToStaffImpl = async (params: AssignServiceToStaffParam
   
   if (existingResult.records.length > 0) {
     // 關係已存在，不需要再次建立
-    return;
+    return { success: true };
   }
   
   // 建立員工與服務的關係
@@ -354,6 +358,8 @@ export const assignServiceToStaffImpl = async (params: AssignServiceToStaffParam
      CREATE (s)-[:CAN_PROVIDE]->(bi)`,
     { staff_member_id, bookable_item_id }
   );
+  
+  return { success: true };
 };
 
 // 建立標準化工具定義

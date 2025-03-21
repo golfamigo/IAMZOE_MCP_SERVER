@@ -40,7 +40,7 @@ export function createToolDefinition(
  */
 export function registerToolHandlers(server: Server, tools: ToolDefinition[]): void {
   if (!tools || tools.length === 0) {
-    console.warn('警告: 沒有找到任何工具定義可註冊');
+    console.error('警告: 沒有找到任何工具定義可註冊');
     return;
   }
   
@@ -53,12 +53,12 @@ export function registerToolHandlers(server: Server, tools: ToolDefinition[]): v
   // 填充映射表，檢查重複名稱
   for (const tool of tools) {
     if (!tool.name) {
-      console.warn('警告: 跳過沒有名稱的工具定義');
+      console.error('警告: 跳過沒有名稱的工具定義');
       continue;
     }
     
     if (toolMap.has(tool.name)) {
-      console.warn(`警告: 發現重複的工具名稱: ${tool.name}`);
+      console.error(`警告: 發現重複的工具名稱: ${tool.name}`);
       duplicateNames.add(tool.name);
       continue;
     }
@@ -67,7 +67,7 @@ export function registerToolHandlers(server: Server, tools: ToolDefinition[]): v
   }
   
   if (duplicateNames.size > 0) {
-    console.warn(`警告: 有 ${duplicateNames.size} 個重複的工具名稱: ${Array.from(duplicateNames).join(', ')}`);
+    console.error(`警告: 有 ${duplicateNames.size} 個重複的工具名稱: ${Array.from(duplicateNames).join(', ')}`);
   }
   
   // 設置工具呼叫處理器
@@ -80,14 +80,14 @@ export function registerToolHandlers(server: Server, tools: ToolDefinition[]): v
       
       // 工具不存在
       if (!tool) {
-        console.warn(`警告: 嘗試呼叫不存在的工具: ${name}`);
+        console.error(`警告: 嘗試呼叫不存在的工具: ${name}`);
         throw new McpError(
           ErrorCode.MethodNotFound,
           `找不到名為 "${name}" 的工具`
         );
       }
       
-      console.log(`執行工具: ${name}`);
+      console.error(`執行工具: ${name}`);
       
       // 驗證參數
       if (tool.inputSchema && tool.inputSchema.required) {
@@ -146,5 +146,5 @@ export function registerToolHandlers(server: Server, tools: ToolDefinition[]): v
     }
   });
   
-  console.log(`已註冊 ${toolMap.size} 個工具處理器`);
+  console.error(`已註冊 ${toolMap.size} 個工具處理器`);
 }

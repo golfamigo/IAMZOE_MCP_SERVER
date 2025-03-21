@@ -164,10 +164,29 @@ export const createBookingImpl = async (params: CreateBookingParams): Promise<Cr
     { business_id, bookable_item_id, start_datetime, end_datetime }
   );
   
-  const totalUnits = existingBookingsResult.records[0].get('total_units') || 0;
+  // 明確轉換 BigInt 為 Number
+  let totalUnits = 0;
+  const rawTotalUnits = existingBookingsResult.records[0].get('total_units');
+  if (rawTotalUnits) {
+    // 檢查是否為 Neo4j 整數類型 (帶有 low/high 屬性)
+    if (rawTotalUnits.low !== undefined && rawTotalUnits.high !== undefined) {
+      totalUnits = Number(rawTotalUnits.low);
+    } else {
+      totalUnits = Number(rawTotalUnits);
+    }
+  }
   
-  if (totalUnits + unit_count > maxCapacity) {
-    throwBusinessLogicError(`預約數量超過可用容量，目前可用: ${maxCapacity - totalUnits}`);
+  // 同樣轉換最大容量為標準 JavaScript 數字
+  let maxCapacityNum = 0;
+  if (maxCapacity && maxCapacity.low !== undefined && maxCapacity.high !== undefined) {
+    maxCapacityNum = Number(maxCapacity.low);
+  } else {
+    maxCapacityNum = Number(maxCapacity);
+  }
+
+  // 使用轉換後的數字進行比較
+  if (totalUnits + Number(unit_count) > maxCapacityNum) {
+    throwBusinessLogicError(`預約數量超過可用容量，目前可用: ${maxCapacityNum - totalUnits}`);
   }
   
   const booking_id = uuidv4();
