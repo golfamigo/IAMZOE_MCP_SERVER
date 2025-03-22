@@ -1,14 +1,13 @@
 import dotenv from 'dotenv';
 import { neo4jClient } from './db';
 import { initializeDatabase } from './utils/databaseSetup';
-import { startApiServer } from './apiServer';
 import { startMcpServer } from './mcpServer';
 
 dotenv.config();
 
 /**
  * 主程式入口點
- * 根據環境變數決定啟動哪些服務
+ * MCP 分支只啟動 MCP 服務器
  */
 (async () => {
   try {
@@ -20,19 +19,9 @@ dotenv.config();
     await initializeDatabase();
     console.error('資料庫初始化完成');
 
-    // 取得啟動模式
-    const mode = process.env.START_MODE || 'all'; // 預設啟動所有服務
-    
-    // 根據模式啟動相應的服務
-    if (mode === 'api' || mode === 'all') {
-      await startApiServer();
-      console.error('API 伺服器已啟動');
-    }
-    
-    if (mode === 'mcp' || mode === 'all') {
-      await startMcpServer();
-      console.error('MCP 伺服器已啟動');
-    }
+    // 啟動 MCP 服務器
+    await startMcpServer();
+    console.error('MCP 伺服器已啟動');
 
     // 優雅關閉處理
     process.on('SIGINT', async () => {

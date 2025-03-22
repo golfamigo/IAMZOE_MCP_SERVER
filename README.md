@@ -1,8 +1,10 @@
-# Neo4j预约系统后端服务
+# Neo4j预约系统 MCP 服务器
+
+> **注意**: 这是纯 MCP 服务器分支，已移除所有 API 相关代码。
 
 ## 项目介绍
 
-本项目是一个基于Neo4j图数据库的预约系统后端服务，支持预约管理、顾客管理、员工管理、服务管理、报表分析等功能，为MCP Server提供了一套完整的API接口。
+本项目是一个基于Neo4j图数据库的预约系统 MCP 服务器，支持预约管理、顾客管理、员工管理、服务管理、报表分析等功能，为 Claude 等大型语言模型提供了一套完整的 MCP 工具。
 
 ## 功能模块
 
@@ -23,9 +25,8 @@
 
 ## 技术栈
 
-- **后端框架**：Node.js + Express.js
+- **后端框架**：Node.js
 - **数据库**：Neo4j图数据库
-- **API验证**：AJV (JSON Schema Validator)
 - **MCP集成**：@modelcontextprotocol/sdk
 
 ## 安装与运行
@@ -36,16 +37,22 @@
 4. 复制`.env.example`文件为`.env`，并配置相关环境变量
 5. 启动服务：`npm start`
 
+## MCP 服务器说明
+
+这个分支是纯 MCP (Model Context Protocol) 服务器，已移除所有 API 相关代码。
+
+### 启动选项
+
+- `npm start` 或 `npm run dev` - 启动 MCP 服务器
+
 ## 环境变量配置
 
 创建`.env`文件，包含以下配置：
 
 ```
-PORT=3000
 NEO4J_URI=neo4j://localhost:7687
 NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=your_password
-API_KEY=your_api_key
 ```
 
 ## 开发说明
@@ -66,50 +73,6 @@ API_KEY=your_api_key
 - :Notification - 通知节点
 
 详细的数据模型请参考"Gemini完善的资料模型.md"文档。
-
-### API文档
-
-API接口遵循RESTful设计规范，详细的API规范请参考"Gemini的API规范文件.md"文档。
-
-## 新增功能说明
-
-### 员工可用性管理
-
-新增了员工可用性（StaffAvailability）相关功能，可以设置员工的工作时间，并用于预约时间的选择。
-
-**相关API**:
-- POST /staff-availability - 创建员工可用性
-- GET /staff/:staff_member_id/availability - 获取员工可用性
-- PUT /staff-availability/:staff_availability_id - 更新员工可用性
-- DELETE /staff-availability/:staff_availability_id - 删除员工可用性
-
-### 员工服务能力管理
-
-新增了员工服务能力（CAN_PROVIDE关系）相关功能，用于管理员工可提供的服务。
-
-**相关API**:
-- POST /staff/:staff_member_id/services - 添加员工可提供的服务
-- GET /staff/:staff_member_id/services - 获取员工可提供的服务列表
-- DELETE /staff/:staff_member_id/services/:bookable_item_id - 删除员工可提供的服务
-- GET /services/:bookable_item_id/staff - 查找能提供指定服务的员工
-
-### 通知系统
-
-完善了通知系统（Notification）相关功能，用于向客户发送预约通知。
-
-**相关API**:
-- POST /notifications - 创建通知
-- GET /users/:user_id/notifications - 获取用户的通知列表
-- GET /bookings/:booking_id/notifications - 获取预约的通知列表
-- DELETE /notifications/:notification_id - 删除通知
-
-### 商业统计数据
-
-新增了商业统计数据相关功能，用于统计和分析业务数据。
-
-**相关API**:
-- GET /businesses/:business_id/statistics - 获取日期范围内的商业统计数据
-- GET /businesses/:business_id/insights - 获取商业洞察数据
 
 ### 数据库索引和约束
 

@@ -9,10 +9,8 @@
     "prebuild": "npm run generate-tools && npm run generate-docs",
     "build": "tsc",
     "start": "node dist/index.js",
-    "start:api": "cross-env START_MODE=api node dist/index.js",
     "start:mcp": "cross-env START_MODE=mcp node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "dev:api": "cross-env START_MODE=api ts-node src/index.ts",
     "dev:mcp": "cross-env START_MODE=mcp ts-node src/index.ts",
     "test": "jest"
   },
