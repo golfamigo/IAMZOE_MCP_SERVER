@@ -62,11 +62,11 @@ export async function setupDatabaseConstraints(): Promise<void> {
       'CREATE INDEX IF NOT EXISTS FOR (sa:StaffAvailability) ON (sa.staff_member_id, sa.day_of_week)',
       
       // 節點標籤索引（基礎優化）
-      'CREATE INDEX IF NOT EXISTS FOR (b:Business)',
-      'CREATE INDEX IF NOT EXISTS FOR (c:Customer)',
-      'CREATE INDEX IF NOT EXISTS FOR (s:Staff)',
-      'CREATE INDEX IF NOT EXISTS FOR (bi:BookableItem)',
-      'CREATE INDEX IF NOT EXISTS FOR (ml:MembershipLevel)'
+      'CREATE INDEX IF NOT EXISTS FOR (b:Business) ON (b)',
+      'CREATE INDEX IF NOT EXISTS FOR (c:Customer) ON (c)',
+      'CREATE INDEX IF NOT EXISTS FOR (s:Staff) ON (s)',
+      'CREATE INDEX IF NOT EXISTS FOR (bi:BookableItem) ON (bi)',
+      'CREATE INDEX IF NOT EXISTS FOR (ml:MembershipLevel) ON (ml)'
     ];
 
     for (const index of indexes) {
