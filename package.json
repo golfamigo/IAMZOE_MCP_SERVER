@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "MCP Server for IAMZOE",
   "main": "dist/index.js",
+  "bin": {
+    "iamzoe-mcp-server": "./dist/bin/cli.js"
+  },
   "scripts": {
     "generate-tools": "ts-node src/scripts/generateToolDefs.ts",
     "generate-docs": "ts-node src/scripts/generateToolDocs.ts",
@@ -17,25 +20,17 @@
   "keywords": [
     "MCP",
     "Neo4j",
-    "API"
+    "API",
+    "n8n"
   ],
-  "author": "",
+  "author": "Your Name",
   "license": "ISC",
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.7.0",
-    "ajv": "^8.12.0",
-    "ajv-formats": "^3.0.1",
-    "dotenv": "^16.4.5",
-    "express": "^4.18.3",
-    "neo4j-driver": "^5.17.0",
-    "uuid": "^9.0.1"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/golfamigo/IAMZOE_MCP_SERVER.git"
   },
-  "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.11.25",
-    "@types/uuid": "^9.0.8",
-    "cross-env": "^7.0.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
-  }
+  "bugs": {
+    "url": "https://github.com/golfamigo/IAMZOE_MCP_SERVER/issues"
+  },
+  "homepage": "https://github.com/golfamigo/IAMZOE_MCP_SERVER#readme"
 }
