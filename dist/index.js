@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -139,6 +138,26 @@ async function startMcpServer() {
             console.error('列出工具時發生錯誤:', error);
             throw new types_js_1.McpError(types_js_1.ErrorCode.InternalError, '列出工具時發生內部錯誤');
         }
+    });
+    /**
+     * 設置資源列表處理器
+     * 當 Agent 請求可用資源列表時，回傳空列表，因為目前不提供資源
+     */
+    server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
+        console.error('收到資源列表請求');
+        return {
+            resources: [] // 返回空資源列表
+        };
+    });
+    /**
+     * 設置提示模板列表處理器
+     * 當 Agent 請求可用提示模板列表時，回傳空列表，因為目前不提供提示模板
+     */
+    server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
+        console.error('收到提示模板列表請求');
+        return {
+            prompts: [] // 返回空提示模板列表
+        };
     });
     // 註冊工具處理器 - 處理工具呼叫並執行相應的工具實現
     (0, toolRegistration_1.registerToolHandlers)(server, toolDefinitions_1.toolDefinitions);
