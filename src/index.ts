@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { ListToolsRequestSchema, ErrorCode, McpError, ListResourcesRequestSchema, ListPromptsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -161,8 +162,6 @@ async function startMcpServer() {
     }
   });
 
-
-
   // 註冊工具處理器 - 處理工具呼叫並執行相應的工具實現
   registerToolHandlers(server, toolDefinitions);
   
@@ -170,23 +169,31 @@ async function startMcpServer() {
    * 設置資源列表處理器
    * 當 Agent 請求可用資源列表時，回傳空列表，因為目前不提供資源
    */
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    console.error('收到資源列表請求');  
-    return {
-      resources: [] // 返回空資源列表
-    };
-  });
+  try {
+    server.setRequestHandler(ListResourcesRequestSchema, async () => {
+      console.error('收到資源列表請求');  
+      return {
+        resources: [] // 返回空資源列表
+      };
+    });
+  } catch (error) {
+    console.error('設置資源列表處理器時發生錯誤:', error);
+  }
 
   /**
    * 設置提示模板列表處理器
    * 當 Agent 請求可用提示模板列表時，回傳空列表，因為目前不提供提示模板
    */
-  server.setRequestHandler(ListPromptsRequestSchema, async () => {
-    console.error('收到提示模板列表請求');
-    return {
-      prompts: [] // 返回空提示模板列表
-    };
-  });
+  try {
+    server.setRequestHandler(ListPromptsRequestSchema, async () => {
+      console.error('收到提示模板列表請求');
+      return {
+        prompts: [] // 返回空提示模板列表
+      };
+    });
+  } catch (error) {
+    console.error('設置提示模板列表處理器時發生錯誤:', error);
+  }
   
   // 設置 MCP 伺服器錯誤處理
   server.onerror = (error) => {
@@ -209,8 +216,12 @@ async function startMcpServer() {
 (async () => {
   try {
     // 連接到資料庫
-    await neo4jClient.connect();
-    console.error('已連接到 Neo4j 資料庫');
+    try {
+      await neo4jClient.connect();
+      console.error('已連接到 Neo4j 資料庫');
+    } catch (error) {
+      console.error('Neo4j 資料庫連接失敗，但繼續執行其他部分:', error);
+    }
     
     // 啟動 MCP 服務器
     await startMcpServer();

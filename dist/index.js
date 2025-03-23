@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -148,22 +149,32 @@ async function startMcpServer() {
      * 設置資源列表處理器
      * 當 Agent 請求可用資源列表時，回傳空列表，因為目前不提供資源
      */
-    server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
-        console.error('收到資源列表請求');
-        return {
-            resources: [] // 返回空資源列表
-        };
-    });
+    try {
+        server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
+            console.error('收到資源列表請求');
+            return {
+                resources: [] // 返回空資源列表
+            };
+        });
+    }
+    catch (error) {
+        console.error('設置資源列表處理器時發生錯誤:', error);
+    }
     /**
      * 設置提示模板列表處理器
      * 當 Agent 請求可用提示模板列表時，回傳空列表，因為目前不提供提示模板
      */
-    server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
-        console.error('收到提示模板列表請求');
-        return {
-            prompts: [] // 返回空提示模板列表
-        };
-    });
+    try {
+        server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
+            console.error('收到提示模板列表請求');
+            return {
+                prompts: [] // 返回空提示模板列表
+            };
+        });
+    }
+    catch (error) {
+        console.error('設置提示模板列表處理器時發生錯誤:', error);
+    }
     // 設置 MCP 伺服器錯誤處理
     server.onerror = (error) => {
         console.error('[MCP Error]', error);
@@ -182,8 +193,13 @@ async function startMcpServer() {
 (async () => {
     try {
         // 連接到資料庫
-        await db_1.neo4jClient.connect();
-        console.error('已連接到 Neo4j 資料庫');
+        try {
+            await db_1.neo4jClient.connect();
+            console.error('已連接到 Neo4j 資料庫');
+        }
+        catch (error) {
+            console.error('Neo4j 資料庫連接失敗，但繼續執行其他部分:', error);
+        }
         // 啟動 MCP 服務器
         await startMcpServer();
         console.error('MCP 伺服器已啟動');
