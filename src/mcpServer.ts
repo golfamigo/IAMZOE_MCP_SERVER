@@ -6,7 +6,6 @@ import { neo4jClient } from './db';
 import { toolDefinitions, loadToolDefinitions } from './tools/toolDefinitions';
 import { ToolDefinition } from './types/tool';
 import { registerToolHandlers } from './utils/toolRegistration';
-import { initializeDatabase } from './utils/databaseSetup';
 
 dotenv.config();
 
@@ -184,10 +183,6 @@ if (require.main === module) {
       await neo4jClient.connect();
       console.error('已連接到 Neo4j 資料庫');
       
-      // 初始化資料庫設置 (索引和約束)
-      await initializeDatabase();
-      console.error('資料庫初始化完成');
-
       // 啟動 MCP 伺服器
       await startMcpServer();
 
