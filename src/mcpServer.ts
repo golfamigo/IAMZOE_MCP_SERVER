@@ -1,5 +1,5 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { ListToolsRequestSchema, ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import { ListToolsRequestSchema, ListResourcesRequestSchema, ListPromptsRequestSchema, ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import dotenv from 'dotenv';
 import { neo4jClient } from './db';
@@ -156,6 +156,28 @@ export const startMcpServer = async () => {
         '列出工具時發生內部錯誤'
       );
     }
+  });
+
+  /**
+   * 設置資源列表處理器
+   * 當 Agent 請求可用資源列表時，回傳空列表，因為目前不提供資源
+   */
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    console.error('收到資源列表請求');  
+    return {
+      resources: [] // 返回空資源列表
+    };
+  });
+
+  /**
+   * 設置提示模板列表處理器
+   * 當 Agent 請求可用提示模板列表時，回傳空列表，因為目前不提供提示模板
+   */
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    console.error('收到提示模板列表請求');
+    return {
+      prompts: [] // 返回空提示模板列表
+    };
   });
 
   // 註冊工具處理器 - 處理工具呼叫並執行相應的工具實現
