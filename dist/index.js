@@ -74,6 +74,9 @@ async function startMcpServer() {
             },
             resources: {
                 description: '提供預約系統相關資源存取，包括商家資訊、服務項目、預約紀錄等'
+            },
+            prompts: {
+                description: '提供預約系統相關的提示模板'
             }
         }
     });
@@ -139,38 +142,28 @@ async function startMcpServer() {
             throw new types_js_1.McpError(types_js_1.ErrorCode.InternalError, '列出工具時發生內部錯誤');
         }
     });
+    // 註冊工具處理器 - 處理工具呼叫並執行相應的工具實現
+    (0, toolRegistration_1.registerToolHandlers)(server, toolDefinitions_1.toolDefinitions);
     /**
      * 設置資源列表處理器
      * 當 Agent 請求可用資源列表時，回傳空列表，因為目前不提供資源
      */
-    try {
-        server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
-            console.error('收到資源列表請求');
-            return {
-                resources: [] // 返回空資源列表
-            };
-        });
-    }
-    catch (error) {
-        console.error('設置資源列表處理器時發生錯誤:', error);
-    }
+    server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
+        console.error('收到資源列表請求');
+        return {
+            resources: [] // 返回空資源列表
+        };
+    });
     /**
      * 設置提示模板列表處理器
      * 當 Agent 請求可用提示模板列表時，回傳空列表，因為目前不提供提示模板
      */
-    try {
-        server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
-            console.error('收到提示模板列表請求');
-            return {
-                prompts: [] // 返回空提示模板列表
-            };
-        });
-    }
-    catch (error) {
-        console.error('設置提示模板列表處理器時發生錯誤:', error);
-    }
-    // 註冊工具處理器 - 處理工具呼叫並執行相應的工具實現
-    (0, toolRegistration_1.registerToolHandlers)(server, toolDefinitions_1.toolDefinitions);
+    server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
+        console.error('收到提示模板列表請求');
+        return {
+            prompts: [] // 返回空提示模板列表
+        };
+    });
     // 設置 MCP 伺服器錯誤處理
     server.onerror = (error) => {
         console.error('[MCP Error]', error);
@@ -188,27 +181,21 @@ async function startMcpServer() {
  */
 (async () => {
     try {
-        try {
-            // 連接到資料庫
-            await db_1.neo4jClient.connect();
-            console.error('已連接到 Neo4j 資料庫');
-            // 啟動 MCP 服務器
-            await startMcpServer();
-            console.error('MCP 伺服器已啟動');
-            // 優雅關閉處理
-            process.on('SIGINT', async () => {
-                console.error('正在關閉應用程式...');
-                await db_1.neo4jClient.close();
-                process.exit(0);
-            });
-        }
-        catch (error) {
-            console.error('啟動應用程式時發生錯誤:', error);
-            process.exit(1);
-        }
+        // 連接到資料庫
+        await db_1.neo4jClient.connect();
+        console.error('已連接到 Neo4j 資料庫');
+        // 啟動 MCP 服務器
+        await startMcpServer();
+        console.error('MCP 伺服器已啟動');
+        // 優雅關閉處理
+        process.on('SIGINT', async () => {
+            console.error('正在關閉應用程式...');
+            await db_1.neo4jClient.close();
+            process.exit(0);
+        });
     }
     catch (error) {
-        console.error('最外層錯誤處理:', error);
+        console.error('啟動應用程式時發生錯誤:', error);
         process.exit(1);
     }
 })();
