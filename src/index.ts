@@ -162,23 +162,31 @@ async function startMcpServer() {
    * 設置資源列表處理器
    * 當 Agent 請求可用資源列表時，回傳空列表，因為目前不提供資源
    */
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    console.error('收到資源列表請求');  
-    return {
-      resources: [] // 返回空資源列表
-    };
-  });
+  try {
+    server.setRequestHandler(ListResourcesRequestSchema, async () => {
+      console.error('收到資源列表請求');  
+      return {
+        resources: [] // 返回空資源列表
+      };
+    });
+  } catch (error) {
+    console.error('設置資源列表處理器時發生錯誤:', error);
+  }
 
   /**
    * 設置提示模板列表處理器
    * 當 Agent 請求可用提示模板列表時，回傳空列表，因為目前不提供提示模板
    */
-  server.setRequestHandler(ListPromptsRequestSchema, async () => {
-    console.error('收到提示模板列表請求');
-    return {
-      prompts: [] // 返回空提示模板列表
-    };
-  });
+  try {
+    server.setRequestHandler(ListPromptsRequestSchema, async () => {
+      console.error('收到提示模板列表請求');
+      return {
+        prompts: [] // 返回空提示模板列表
+      };
+    });
+  } catch (error) {
+    console.error('設置提示模板列表處理器時發生錯誤:', error);
+  }
 
   // 註冊工具處理器 - 處理工具呼叫並執行相應的工具實現
   registerToolHandlers(server, toolDefinitions);
@@ -203,22 +211,27 @@ async function startMcpServer() {
  */
 (async () => {
   try {
-    // 連接到資料庫
-    await neo4jClient.connect();
-    console.error('已連接到 Neo4j 資料庫');
-    
-    // 啟動 MCP 服務器
-    await startMcpServer();
-    console.error('MCP 伺服器已啟動');
+    try {
+      // 連接到資料庫
+      await neo4jClient.connect();
+      console.error('已連接到 Neo4j 資料庫');
+      
+      // 啟動 MCP 服務器
+      await startMcpServer();
+      console.error('MCP 伺服器已啟動');
 
-    // 優雅關閉處理
-    process.on('SIGINT', async () => {
-      console.error('正在關閉應用程式...');
-      await neo4jClient.close();
-      process.exit(0);
-    });
+      // 優雅關閉處理
+      process.on('SIGINT', async () => {
+        console.error('正在關閉應用程式...');
+        await neo4jClient.close();
+        process.exit(0);
+      });
+    } catch (error) {
+      console.error('啟動應用程式時發生錯誤:', error);
+      process.exit(1);
+    }
   } catch (error) {
-    console.error('啟動應用程式時發生錯誤:', error);
+    console.error('最外層錯誤處理:', error);
     process.exit(1);
   }
 })();

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.startMcpServer = void 0;
 const index_js_1 = require("@modelcontextprotocol/sdk/server/index.js");
 const types_js_1 = require("@modelcontextprotocol/sdk/types.js");
 const stdio_js_1 = require("@modelcontextprotocol/sdk/server/stdio.js");
@@ -15,7 +16,7 @@ dotenv_1.default.config();
  * 啟動 MCP 伺服器
  * @returns MCP 伺服器實例
  */
-async function startMcpServer() {
+const startMcpServer = async () => {
     // 載入所有工具定義
     console.error('正在載入工具定義...');
     await (0, toolDefinitions_1.loadToolDefinitions)();
@@ -143,32 +144,22 @@ async function startMcpServer() {
      * 設置資源列表處理器
      * 當 Agent 請求可用資源列表時，回傳空列表，因為目前不提供資源
      */
-    try {
-        server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
-            console.error('收到資源列表請求');
-            return {
-                resources: [] // 返回空資源列表
-            };
-        });
-    }
-    catch (error) {
-        console.error('設置資源列表處理器時發生錯誤:', error);
-    }
+    server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
+        console.error('收到資源列表請求');
+        return {
+            resources: [] // 返回空資源列表
+        };
+    });
     /**
      * 設置提示模板列表處理器
      * 當 Agent 請求可用提示模板列表時，回傳空列表，因為目前不提供提示模板
      */
-    try {
-        server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
-            console.error('收到提示模板列表請求');
-            return {
-                prompts: [] // 返回空提示模板列表
-            };
-        });
-    }
-    catch (error) {
-        console.error('設置提示模板列表處理器時發生錯誤:', error);
-    }
+    server.setRequestHandler(types_js_1.ListPromptsRequestSchema, async () => {
+        console.error('收到提示模板列表請求');
+        return {
+            prompts: [] // 返回空提示模板列表
+        };
+    });
     // 註冊工具處理器 - 處理工具呼叫並執行相應的工具實現
     (0, toolRegistration_1.registerToolHandlers)(server, toolDefinitions_1.toolDefinitions);
     // 設置 MCP 伺服器錯誤處理
@@ -181,34 +172,27 @@ async function startMcpServer() {
     await server.connect(transport);
     console.error('MCP Server 已啟動');
     return server;
-}
-/**
- * 主程式入口點
- * MCP Server 啟動流程
- */
-(async () => {
-    try {
+};
+exports.startMcpServer = startMcpServer;
+// 如果直接執行此文件，則啟動 MCP 伺服器
+if (require.main === module) {
+    (async () => {
         try {
             // 連接到資料庫
             await db_1.neo4jClient.connect();
             console.error('已連接到 Neo4j 資料庫');
-            // 啟動 MCP 服務器
-            await startMcpServer();
-            console.error('MCP 伺服器已啟動');
+            // 啟動 MCP 伺服器
+            await (0, exports.startMcpServer)();
             // 優雅關閉處理
             process.on('SIGINT', async () => {
-                console.error('正在關閉應用程式...');
+                console.error('正在關閉 MCP 伺服器...');
                 await db_1.neo4jClient.close();
                 process.exit(0);
             });
         }
         catch (error) {
-            console.error('啟動應用程式時發生錯誤:', error);
+            console.error('啟動 MCP 伺服器時發生錯誤:', error);
             process.exit(1);
         }
-    }
-    catch (error) {
-        console.error('最外層錯誤處理:', error);
-        process.exit(1);
-    }
-})();
+    })();
+}
