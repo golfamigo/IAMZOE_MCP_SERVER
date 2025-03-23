@@ -32,6 +32,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 初始化腳本
@@ -43,11 +46,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * 使用方式: npm run initialize
  */
 const path = __importStar(require("path"));
+const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = require("../../db");
 const databaseSetup_1 = require("../../utils/databaseSetup");
 const toolScanner_1 = require("../../utils/toolScanner");
 const toolScanner_2 = require("../../utils/toolScanner");
 const fs = __importStar(require("fs/promises"));
+// 載入環境變數
+const envPath = path.resolve(__dirname, '../../../.env');
+console.log(`嘗試載入環境變數文件: ${envPath}`);
+const envResult = dotenv_1.default.config({ path: envPath });
+if (envResult.error) {
+    console.error('載入環境變數失敗:', envResult.error);
+}
+else {
+    console.log('環境變數載入成功');
+}
 // 工具目錄和輸出路徑設定
 const TOOLS_DIR = path.join(__dirname, '../../tools');
 const TOOL_DEFS_OUTPUT = path.join(__dirname, '../../tools/generatedToolDefs.ts');
@@ -243,6 +257,15 @@ function generateSampleArguments(schema) {
  */
 async function initialize() {
     console.log("開始系統初始化...");
+    // 檢查環境變數是否已正確設置
+    console.log('檢查環境變數:');
+    console.log('NEO4J_URI:', process.env.NEO4J_URI ? '已設置' : '未設置');
+    console.log('NEO4J_USERNAME:', process.env.NEO4J_USERNAME ? '已設置' : '未設置');
+    console.log('NEO4J_PASSWORD:', process.env.NEO4J_PASSWORD ? '已設置' : '未設置');
+    if (!process.env.NEO4J_URI || !process.env.NEO4J_USERNAME || !process.env.NEO4J_PASSWORD) {
+        console.error('錯誤: 環境變數未正確設置。請確保 .env 文件包含所需的 Neo4j 連接信息。');
+        process.exit(1);
+    }
     try {
         // 1. 連接資料庫
         await db_1.neo4jClient.connect();
