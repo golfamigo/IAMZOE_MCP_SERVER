@@ -131,6 +131,9 @@ exports.createUserImpl = createUserImpl;
 const getSuitableUsersForAdvertisementImpl = async (params) => {
     // 參數驗證在 standardizeToolExecution 中處理
     const { business_id, advertisement_target_audience, limit = 10, offset = 0 } = params;
+    // 確保 limit 和 offset 是整數
+    const safeLimit = typeof limit === 'number' ? Math.floor(limit) : 10;
+    const safeOffset = typeof offset === 'number' ? Math.floor(offset) : 0;
     // 檢查商家是否存在
     try {
         const businessResult = await db_1.neo4jClient.runQuery(`MATCH (b:Business {business_id: $business_id}) RETURN b`, { business_id });
@@ -160,8 +163,8 @@ const getSuitableUsersForAdvertisementImpl = async (params) => {
     let whereClause = `WHERE c.business_id = $business_id`;
     const queryParams = {
         business_id,
-        offset,
-        limit
+        offset: safeOffset,
+        limit: safeLimit
     };
     if (targetAudience.gender) {
         if (!['male', 'female', 'other', 'prefer_not_to_say'].includes(targetAudience.gender)) {

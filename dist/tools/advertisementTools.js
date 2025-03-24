@@ -120,6 +120,7 @@ const approveAdvertisementImpl = async (params) => {
         status: approved ? 'approved' : 'rejected',
         reason
     });
+    return { success: true };
 };
 exports.approveAdvertisementImpl = approveAdvertisementImpl;
 /**
@@ -149,6 +150,7 @@ const updateAdvertisementStatusImpl = async (params) => {
      SET a.advertisement_status = $status,
          a.updated_at = datetime()
      RETURN a`, { advertisement_id, status });
+    return { success: true };
 };
 exports.updateAdvertisementStatusImpl = updateAdvertisementStatusImpl;
 // 建立標準化工具定義

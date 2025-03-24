@@ -168,7 +168,7 @@ export const createAdvertisementImpl = async (params: CreateAdvertisementParams)
  * 審核廣告
  * @param params 審核參數
  */
-export const approveAdvertisementImpl = async (params: ApproveAdvertisementParams): Promise<void> => {
+export const approveAdvertisementImpl = async (params: ApproveAdvertisementParams): Promise<{success: boolean}> => {
   // 驗證輸入參數
   validateParams(params, approveAdvertisementSchema);
   const { advertisement_id, approved, reason } = params;
@@ -187,13 +187,15 @@ export const approveAdvertisementImpl = async (params: ApproveAdvertisementParam
       reason
     }
   );
+  
+  return { success: true };
 };
 
 /**
  * 更新廣告狀態
  * @param params 狀態更新參數
  */
-export const updateAdvertisementStatusImpl = async (params: UpdateAdvertisementStatusParams): Promise<void> => {
+export const updateAdvertisementStatusImpl = async (params: UpdateAdvertisementStatusParams): Promise<{success: boolean}> => {
   // 驗證輸入參數
   validateParams(params, updateAdvertisementStatusSchema);
   const { advertisement_id, status } = params;
@@ -228,6 +230,8 @@ export const updateAdvertisementStatusImpl = async (params: UpdateAdvertisementS
      RETURN a`,
     { advertisement_id, status }
   );
+  
+  return { success: true };
 };
 
 // 建立標準化工具定義

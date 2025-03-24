@@ -207,6 +207,10 @@ export const getSuitableUsersForAdvertisementImpl = async (params: GetSuitableUs
     offset = 0
   } = params;
   
+  // 確保 limit 和 offset 是整數
+  const safeLimit = typeof limit === 'number' ? Math.floor(limit) : 10;
+  const safeOffset = typeof offset === 'number' ? Math.floor(offset) : 0;
+  
   // 檢查商家是否存在
   try {
     const businessResult = await neo4jClient.runQuery(
@@ -255,8 +259,8 @@ export const getSuitableUsersForAdvertisementImpl = async (params: GetSuitableUs
   let whereClause = `WHERE c.business_id = $business_id`;
   const queryParams: Record<string, any> = { 
     business_id,
-    offset,
-    limit
+    offset: safeOffset,
+    limit: safeLimit
   };
   
   if (targetAudience.gender) {

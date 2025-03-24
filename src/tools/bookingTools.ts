@@ -324,7 +324,7 @@ export const createBookingImpl = async (params: CreateBookingParams): Promise<Cr
  * 取消預約
  * @param params 取消參數
  */
-export const cancelBookingImpl = async (params: CancelBookingParams): Promise<void> => {
+export const cancelBookingImpl = async (params: CancelBookingParams): Promise<{success: boolean}> => {
   // 驗證輸入參數
   validateParams(params, cancelBookingSchema);
   const { booking_id, cancellation_reason } = params;
@@ -369,6 +369,8 @@ export const cancelBookingImpl = async (params: CancelBookingParams): Promise<vo
      RETURN b`,
     { booking_id, cancellation_reason: cancellation_reason || '用戶取消' }
   );
+  
+  return { success: true };
 };
 
 // 建立標準化工具定義

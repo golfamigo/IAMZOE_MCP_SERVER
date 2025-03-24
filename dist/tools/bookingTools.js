@@ -258,6 +258,7 @@ const cancelBookingImpl = async (params) => {
          b.cancellation_reason = $cancellation_reason,
          b.updated_at = datetime()
      RETURN b`, { booking_id, cancellation_reason: cancellation_reason || '用戶取消' });
+    return { success: true };
 };
 exports.cancelBookingImpl = cancelBookingImpl;
 // 建立標準化工具定義
