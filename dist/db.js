@@ -23,13 +23,39 @@ class Neo4jClient {
             console.error('已關閉 Neo4j 資料庫連線');
         }
     }
+    /**
+     * 處理查詢參數，確保數字參數都是整數
+     * @param params 查詢參數
+     * @returns 處理後的參數
+     */
+    processParams(params) {
+        if (!params)
+            return undefined;
+        const result = {};
+        for (const key in params) {
+            const value = params[key];
+            if (typeof value === 'number') {
+                // 確保數值是整數
+                result[key] = Number.isInteger(value) ? value : Math.floor(value);
+                if (!Number.isInteger(value)) {
+                    console.error(`自動將參數 ${key} 從 ${value} 轉換為 ${result[key]}`);
+                }
+            }
+            else {
+                result[key] = value;
+            }
+        }
+        return result;
+    }
     async runQuery(query, params) {
         if (!this.driver) {
             throw new Error('Neo4j 資料庫未連接');
         }
+        // 處理參數中的數值
+        const processedParams = this.processParams(params);
         const session = this.driver.session();
         try {
-            const result = await session.run(query, params);
+            const result = await session.run(query, processedParams);
             return result;
         }
         finally {
