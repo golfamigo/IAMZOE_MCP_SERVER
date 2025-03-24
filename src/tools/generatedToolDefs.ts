@@ -1,6 +1,6 @@
 /**
  * 自動生成的工具定義檔案
- * 生成時間: 2025-03-24T07:13:15.009Z
+ * 生成時間: 2025-03-24T07:58:10.714Z
  * 
  * 此檔案由 generateToolDefs.ts 腳本自動生成
  * 請手動檢查並確保每個工具定義正確
@@ -24,6 +24,7 @@ import { createMembershipLevel } from './membershipLevelTools';
 import { getMembershipLevel } from './membershipLevelTools';
 import { assignMembershipLevel } from './membershipLevelTools';
 import { createNotification } from './notificationTools';
+import { getServicesByBusinessId } from './serviceTools';
 import { createService } from './serviceTools';
 import { getService } from './serviceTools';
 import { getAvailableSlots } from './serviceTools';
@@ -86,6 +87,9 @@ export const generatedToolDefinitions: ToolDefinition[] = [
 
   // notificationTools 工具
   createNotification,
+
+  // serviceTools 工具
+  getServicesByBusinessId,
 
   // serviceTools 工具
   createService,

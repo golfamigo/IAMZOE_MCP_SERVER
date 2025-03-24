@@ -20,6 +20,7 @@ const notificationTools_1 = require("./notificationTools");
 const serviceTools_1 = require("./serviceTools");
 const serviceTools_2 = require("./serviceTools");
 const serviceTools_3 = require("./serviceTools");
+const serviceTools_4 = require("./serviceTools");
 const staffTools_1 = require("./staffTools");
 const staffTools_2 = require("./staffTools");
 const staffTools_3 = require("./staffTools");
@@ -64,11 +65,13 @@ exports.generatedToolDefinitions = [
     // notificationTools 工具
     notificationTools_1.createNotification,
     // serviceTools 工具
-    serviceTools_1.createService,
+    serviceTools_1.getServicesByBusinessId,
     // serviceTools 工具
-    serviceTools_2.getService,
+    serviceTools_2.createService,
     // serviceTools 工具
-    serviceTools_3.getAvailableSlots,
+    serviceTools_3.getService,
+    // serviceTools 工具
+    serviceTools_4.getAvailableSlots,
     // staffTools 工具
     staffTools_1.createStaff,
     // staffTools 工具

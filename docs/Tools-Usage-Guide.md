@@ -1,6 +1,6 @@
 # IAMZOE MCP 伺服器工具使用指南
 
-此文檔自動生成於 2025-03-24T07:13:17.068Z
+此文檔自動生成於 2025-03-24T07:58:12.817Z
 
 ## 目錄
 
@@ -20,18 +20,19 @@
 14. [getMembershipLevel](#getmembershiplevel) - 獲取會員等級詳細資訊
 15. [assignMembershipLevel](#assignmembershiplevel) - 將客戶指派到特定的會員等級
 16. [createNotification](#createnotification) - 創建新的系統通知
-17. [createService](#createservice) - 創建新的服務項目
-18. [getService](#getservice) - 獲取服務項目詳細資訊
-19. [getAvailableSlots](#getavailableslots) - 獲取服務的可用時間段
-20. [createStaff](#createstaff) - 建立新員工記錄
-21. [getStaff](#getstaff) - 獲取員工資訊
-22. [addStaffAvailability](#addstaffavailability) - 設定員工工作可用時段
-23. [assignServiceToStaff](#assignservicetostaff) - 將服務項目指派給員工提供
-24. [createSubscription](#createsubscription) - 創建定期預約訂閱
-25. [createUserRelationship](#createuserrelationship) - 創建使用者之間的關係
-26. [getUserRelationship](#getuserrelationship) - 獲取兩個使用者之間的關係
-27. [createUser](#createuser) - 創建新的使用者
-28. [getSuitableUsersForAdvertisement](#getsuitableusersforadvertisement) - 獲取符合廣告目標受眾條件的使用者
+17. [getServicesByBusinessId](#getservicesbybusinessid) - 根據商家 ID 獲取服務項目詳細資訊
+18. [createService](#createservice) - 創建新的服務項目
+19. [getService](#getservice) - 獲取服務項目詳細資訊
+20. [getAvailableSlots](#getavailableslots) - 獲取服務的可用時間段
+21. [createStaff](#createstaff) - 建立新員工記錄
+22. [getStaff](#getstaff) - 獲取員工資訊
+23. [addStaffAvailability](#addstaffavailability) - 設定員工工作可用時段
+24. [assignServiceToStaff](#assignservicetostaff) - 將服務項目指派給員工提供
+25. [createSubscription](#createsubscription) - 創建定期預約訂閱
+26. [createUserRelationship](#createuserrelationship) - 創建使用者之間的關係
+27. [getUserRelationship](#getuserrelationship) - 獲取兩個使用者之間的關係
+28. [createUser](#createuser) - 創建新的使用者
+29. [getSuitableUsersForAdvertisement](#getsuitableusersforadvertisement) - 獲取符合廣告目標受眾條件的使用者
 
 ## 工具詳細說明
 
@@ -603,6 +604,37 @@
 
 ---
 
+### getServicesByBusinessId
+
+**描述:** 根據商家 ID 獲取服務項目詳細資訊
+
+**輸入參數:**
+
+| 參數名稱 | 類型 | 必填 | 說明 |
+| -------- | ---- | ---- | ---- |
+| `business_id` | string | 是 | 商家 ID |
+
+**示例:**
+
+```json
+{
+  "name": "getServicesByBusinessId",
+  "arguments": {
+  "business_id": "00000000-0000-0000-0000-000000000000"
+}
+}
+```
+
+**注意事項:**
+- 必須提供參數: `business_id`
+- 可能的錯誤代碼:
+  - `InvalidParams`: 當提供的參數不完整或格式錯誤
+  - `MethodNotFound`: 當呼叫不存在的工具
+  - `InternalError`: 當工具執行過程中發生內部錯誤
+  - `BusinessLogicError`: 當違反業務邏輯規則
+
+---
+
 ### createService
 
 **描述:** 創建新的服務項目
@@ -687,7 +719,8 @@
 
 | 參數名稱 | 類型 | 必填 | 說明 |
 | -------- | ---- | ---- | ---- |
-| `bookable_item_id` | string | 是 | 可預約項目 ID |
+| `bookable_item_id` | string | 否 | 可預約項目 ID |
+| `business_id` | string | 否 | 商家 ID |
 | `start_date` | string | 是 | 開始日期 (YYYY-MM-DD) |
 | `end_date` | string | 是 | 結束日期 (YYYY-MM-DD) |
 
@@ -698,6 +731,7 @@
   "name": "getAvailableSlots",
   "arguments": {
   "bookable_item_id": "00000000-0000-0000-0000-000000000000",
+  "business_id": "00000000-0000-0000-0000-000000000000",
   "start_date": "2025-01-01",
   "end_date": "2025-01-01"
 }
@@ -705,7 +739,7 @@
 ```
 
 **注意事項:**
-- 必須提供參數: `bookable_item_id`, `start_date`, `end_date`
+- 必須提供參數: `start_date`, `end_date`
 - 可能的錯誤代碼:
   - `InvalidParams`: 當提供的參數不完整或格式錯誤
   - `MethodNotFound`: 當呼叫不存在的工具
