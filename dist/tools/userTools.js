@@ -198,13 +198,16 @@ const getSuitableUsersForAdvertisementImpl = async (params) => {
        ${whereClause}
        RETURN count(c) as total`, queryParams);
         const total = (0, neo4jUtils_1.toJsNumber)(countResult.records[0].get('total'));
+        // 刪除 queryParams 中的 limit 和 offset，因為我們會直接在查詢中使用整數值
+        delete queryParams.limit;
+        delete queryParams.offset;
         // 獲取符合條件的用戶
         const result = await db_1.neo4jClient.runQuery(`MATCH (c:Customer)-[:IS]-(u:User)
        ${whereClause}
        RETURN u.user_id as user_id, u.user_name as user_name, c.customer_phone as customer_phone
        ORDER BY u.created_at DESC
-       SKIP $offset
-       LIMIT $limit`, queryParams);
+       SKIP ${safeOffset}
+       LIMIT ${safeLimit}`, queryParams);
         const users = result.records.map(record => ({
             user_id: record.get('user_id'),
             user_name: record.get('user_name'),
